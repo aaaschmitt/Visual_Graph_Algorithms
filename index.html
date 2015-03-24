@@ -2,6 +2,8 @@
 <meta charset="utf-8">
 <script src="http://d3js.org/d3.v3.js"></script>
 <script src="./Graph.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <style>
 
 path.link {
@@ -23,4 +25,39 @@ text {
 }
 
 </style>
+
+<h1>Graph Algorithms</h1>
+<br>
+
+<!-- Algorithm Setup Buttons -->
+<div class="btn-toolbar" role="toolbar" aria-label="...">
+  <div class="btn-group" role="group" aria-label="...">
+  	<button onlick="setup('DFS', isDirected);" type="button" class="btn btn-primary">DFS</button>
+  	<button onlick="setup('BFS', isDirected);" type="button" class="btn btn-primary">BFS</button>
+  </div>
+  <div class="btn-group" role="group" aria-label="...">
+  	<button onlick="setup('Dijkstra', isDirected);" type="button" class="btn btn-  success">Dijkstra's</button>
+  	<button onlick="setup('Bellman', isDirected);" type="button" class="btn btn-success">Bellman-Ford</button>
+  </div>
+  <div class="btn-group" role="group" aria-label="...">
+  	<button onlick="setup('Kruskal', isDirected);" type="button" class="btn btn-info">Kruskal's</button>
+  	<button onlick="setup('Prim', isDirected);" type="button" class="btn btn-info">Prim's</button>
+  </div>
+</div>
+
+<!-- Directed and Undirected Buttons and Run button -->
+<div class="btn-toolbar" role="toolbar" aria-label="...">
+	<div class="btn-group" role="group" aria-label="...">
+		<button onclick="isDirected = true; setup(cur_algorithm, isDirected);" type="button" class="btn btn-warning">Directed</button>
+		<button onclick="isDirected = false; setup(cur_algorithm, isDirected);" type="button" class="btn btn-warning">Un-Directed</button>
+	</div>
+	<div class="btn-group" role="group" aria-label="...">
+		<button onclick="run()" type="button" class="btn btn-danger">Run Algorithm!</button>
+	</div>
+</div>
+
+<!-- This is what we build the graph on. -->
+<div class="graph">
+</dv>
+
 </html>
