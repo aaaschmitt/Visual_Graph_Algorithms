@@ -42,54 +42,6 @@ function setup(name, directed) {
 
     console.log(csv);
 
-    // if (directed) {
-    //     switch (algorithms[name]) {
-    //         case "DFS":
-    //             csv = "./DFS_direct.csv"
-    //             break;
-    //         case "BFS":
-    //             csv = "./BFS_direct.csv"
-    //             break;
-    //         case "Dijkstra":
-    //             csv = "./Dijkstra_direct.csv"
-    //             break;
-    //         case "Bellman":
-    //             csv = "./Bellman_direct.csv"
-    //             break;
-    //         case "Kruskal":
-    //             MST_error();
-    //             return;
-    //         case "Prim":
-    //             MST_error();
-    //             return;
-    //         default:
-    //             throw "incorrect directed algorithm name: " + name
-    //     }
-    // } else {
-    //     switch (algorithms[name]) {
-    //         case "DFS":
-    //             csv = "./DFS_undirect.csv"
-    //             break;
-    //         case "BFS":
-    //             csv = "./BFS_undirect.csv"
-    //             break;
-    //         case "Dijkstra":
-    //             csv = "./Dijkstra_undirect.csv"
-    //             break;
-    //         case "Bellman":
-    //             csv = "./Bellman_undirect.csv"
-    //             break;
-    //         case "Kruskal":
-    //             csv = "./Kruskal.csv"
-    //             break;
-    //         case "Prim":
-    //             csv = "./Prim.csv"
-    //             break;
-    //         default:
-    //             throw "incorrect un-directed algorithm name: " + name
-    //     }
-    // }
-
     d3.csv(csv, function(error, links) {
         //sort links by target
         links.sort(function(a,b) {
@@ -225,6 +177,6 @@ function setup(name, directed) {
 
 function MST_error() {
     var x = document.getElementsByClassName("graph");
-    x[0].innerHTML = cur_algorithm + "'s is only defined for un-directed graphs! As are all MST algorithms.";
+    x[0].innerHTML = algorithms[cur_algorithm] + "'s is only defined for un-directed graphs! As are all MST algorithms.";
     return "";
 };
