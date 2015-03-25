@@ -1,7 +1,9 @@
 // control variables
 var cur_algorithm = 0,
     isDirected = false,
-    isPositive = true
+    isPositive = true,
+    nodes = {},
+    links = {},
     algorithms = [
     "DFS", "BFS", "Dijkstra", "Bellman", "Kruskal", "Prim"],
     direct_csv_files = {
@@ -24,9 +26,7 @@ var cur_algorithm = 0,
 function setup(name, directed) {
     var x = document.getElementsByClassName("graph");
     x[0].innerHTML = "";
-    console.log(cur_algorithm);
     cur_algorithm = name;
-    console.log(name);
     // choose which data to use
     var csv = "";
     if (directed) {
@@ -60,12 +60,20 @@ function setup(name, directed) {
             else {links[i].linknum = 1;};
         };
 
-        var nodes = {};
+        nodes = {};
 
         // Compute the distinct nodes from the links.
         links.forEach(function(link) {
-          link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
-          link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
+            link.source = nodes[link.source] || (nodes[link.source] = {name: link.source, adjacent: [], group: link.group});
+            link.target = nodes[link.target] || (nodes[link.target] = {name: link.target, adjacent: [], group: link.group});
+
+
+            // set up adjacency list
+            nodes[link.source.name].adjacent.push( {node: nodes[link.target.name], edge: link} );
+            if (!isDirected) {
+                nodes[link.target.name].adjacent.push( {node: nodes[link.source.name], edge: link} );
+            }
+
         });
 
         var w = 960,
@@ -80,6 +88,8 @@ function setup(name, directed) {
             .linkStrength(.9)
             .on("tick", tick)
             .start();
+
+        console.log(force.nodes());
 
         var svg = d3.select("div.graph").append("svg:svg")
             .attr("width", w)
@@ -98,16 +108,24 @@ function setup(name, directed) {
             };
         };
 
+        var marker_h = 10,
+            marker_w = 10;
+
+        if (!isDirected) {
+            marker_h=0;
+            marker_w=0;
+        }
+
         // Per-type markers, as they don't inherit styles.
         svg.append("svg:defs").selectAll("marker")
             .data(weights)
           .enter().append("svg:marker")
             .attr("id", String)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 30)
-            .attr("refY", -4.5)
-            .attr("markerWidth", 6)
-            .attr("markerHeight", 6)
+            .attr("refX", 24)
+            .attr("refY", 0)
+            .attr("markerWidth", marker_w)
+            .attr("markerHeight", marker_h)
             .attr("orient", "auto")
           .append("svg:path")
             .attr("d", "M0,-5L10,0L0,5");
@@ -139,8 +157,10 @@ function setup(name, directed) {
             .data(force.nodes())
           .enter().append("svg:circle")
             .attr("r", 20)
-            .style("fill", "#FD8D3C")
+            .style("fill", "0000F0" )
             .call(force.drag);
+
+        console.log(circle);
 
         var text = svg.append("svg:g").selectAll("g")
             .data(force.nodes())

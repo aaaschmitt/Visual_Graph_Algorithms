@@ -1,4 +1,4 @@
-source,target,value
+source,target,value,type
 B,E,1,5
 E,F,1,6
 E,G,1,7
