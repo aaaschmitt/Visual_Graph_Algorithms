@@ -171,12 +171,8 @@ function setup(name, directed) {
             .attr("x", "-1em")
             .attr("y", ".31em")
              .style("font-size", "13px")
-            .text(function(d) { return d.name; });
-
-
-        // Grab a node and change its color after it is made
-        document.getElementById("A").setAttribute("style", "fill : #FF0000");
-        document.getElementById("A->B").setAttribute("style", "stroke: #FF0000");
+            .text(function(d) { return d.name; })
+            .attr("id", function(d) {return "node_text:" + d.name});
 
         // Use elliptical arc path segments to doubly-encode directionality.
         function tick() {
@@ -200,6 +196,13 @@ function setup(name, directed) {
 
     });
 };
+
+function run() {
+    // Grab a node and change its color after it is made
+    document.getElementById("A").setAttribute("style", "fill : #FF0000");
+    document.getElementById("A->B").setAttribute("style", "stroke: #FF0000");
+    document.getElementById("node_text:A").innerHTML = "A=inf"
+}
 
 function MST_error() {
     var x = document.getElementsByClassName("graph");
