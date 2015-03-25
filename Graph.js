@@ -134,12 +134,13 @@ function setup(name, directed) {
             .data(force.links())
           .enter().append("svg:path")
             .attr("class", function(d) { return "link " + d.type; })
-            .attr("id",function(d,i) { return "linkId_" + i; })
-            .attr("marker-end", function(d) { return "url(#" + "w=" + d.type + ")"; });
+            .attr("id",function(d) { return d.source.name + "->" + d.target.name; })
+            .attr("marker-end", function(d) { return "url(#" + "w=" + d.type + ")"; })
+            .style("stroke", "#666");
 
-        var linktext = svg.append("svg:g").selectAll("g.linklabelholder").data(force.links());
-        
-            linktext.enter().append("g").attr("class", "linklabelholder")
+        var linktext = svg.append("svg:g").selectAll("g.linklabelholder")
+            .data(force.links())
+          .enter().append("g").attr("class", "linklabelholder")
              .append("text")
              .attr("class", "linklabel")
              .style("font-size", "13px")
@@ -148,19 +149,19 @@ function setup(name, directed) {
              .attr("text-anchor", "start")
              .style("fill","#000")
              .append("textPath")
-             .attr("xlink:href",function(d,i) { return "#linkId_" + i;})
+             .attr("xlink:href",function(d) { return "#" + d.source.name + "->" + d.target.name; })
              .text(function(d) { 
              return d.type; 
              });
             
         var circle = svg.append("svg:g").selectAll("circle")
             .data(force.nodes())
-          .enter().append("svg:circle")
+           .enter().append("svg:circle")
             .attr("r", 20)
-            .style("fill", "0000F0" )
+            .attr("id", function(d) {return d.name})
+            .style("fill", "#0066FF")
             .call(force.drag);
 
-        console.log(circle);
 
         var text = svg.append("svg:g").selectAll("g")
             .data(force.nodes())
@@ -171,6 +172,11 @@ function setup(name, directed) {
             .attr("y", ".31em")
              .style("font-size", "13px")
             .text(function(d) { return d.name; });
+
+
+        // Grab a node and change its color after it is made
+        document.getElementById("A").setAttribute("style", "fill : #FF0000");
+        document.getElementById("A->B").setAttribute("style", "stroke: #FF0000");
 
         // Use elliptical arc path segments to doubly-encode directionality.
         function tick() {
