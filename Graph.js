@@ -3,8 +3,8 @@ var cur_algorithm = 0,
     isDirected = false,
     isPositive = true,
     isSetup = false;
-    start_node = "",
     nodes = {},
+    force = "",
     algo_nodes = new Set(),
     start_node_color = "#0066FF",
     start_edge_color = "#666",
@@ -98,14 +98,10 @@ function setup(name, directed) {
 
         });
 
-        // we start at node A unless otherwise specified -> not yet implemented
-        start_node = nodes["A"];
-        console.log(start_node);
-
         var w = 960,
             h = 600;
 
-        var force = d3.layout.force()
+        force = d3.layout.force()
             .nodes(d3.values(nodes))
             .links(links)
             .size([w, h])
@@ -232,6 +228,8 @@ function run() {
     if (!isSetup) {
         setup(cur_algorithm, isDirected);
     }
+
+    force.stop();
 
     switch(cur_algorithm) {
         case 0: DFS(); break;

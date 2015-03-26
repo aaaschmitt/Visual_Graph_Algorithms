@@ -2,10 +2,12 @@
 
 //flashes a components color betweent the start color
 // and a new color. leaves the componenet as its original color
+var flash_time = 100;
+var flash_int = 100;
+
 function flash_color(id, string, isEdge) {
 	var color_flash = "",
 		start_color = "",
-		flash_dur = 1000,
 		num_flashes = 3;
 	switch(string) {
 		case "v": color_flash = "#33CC33";
@@ -17,14 +19,17 @@ function flash_color(id, string, isEdge) {
 			break;
 	}
 	if (isEdge) {
-		console.log(id);
 		start_color = document.getElementById(id).style.stroke
 	} else {
 		start_color = document.getElementById(id).style.fill
 	}
+	console.log(isEdge);
+	console.log(start_color);
 	for (i=0; i<num_flashes; i++) {
-		color(id, flash_color, isEdge);
-		setTimeout(color(id, start_color, isEdge), flash_dur);
+		color(id, color_flash, isEdge);
+		flash_time += flash_int;
+		color(id, start_color, isEdge);
+		flash_time += flash_int;
 	}
 }
 
@@ -41,10 +46,12 @@ function color(id, color, isEdge) {
 	} else {
 		attr = "fill : "
 	}
-	document.getElementById(id).setAttribute("style", attr + color);
+	setTimeout(function() { document.getElementById(id).setAttribute("style", attr + color); }, flash_time);
+	flash_time += flash_int;
 }
 
 // grabs a node and changes its text value
 function change_node_text(id, text) {
-	document.getElementById("node_text:" + id).innerHTML = text;
+	setTimeout(function() { document.getElementById("node_text:" + id).innerHTML = text; }, flash_time);
+	flash_time += flash_int;
 }
