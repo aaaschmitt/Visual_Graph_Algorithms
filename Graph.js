@@ -2,9 +2,16 @@
 var cur_algorithm = 0,
     isDirected = false,
     isPositive = true,
+    isSetup = false;
+    start_node = "",
     nodes = {},
-    links = {},
-    algorithms = [
+    algo_nodes = new Set(),
+    start_node_color = "#0066FF",
+    start_edge_color = "#666",
+    undirect_ids = {};
+
+// Files containing the graphs
+var algorithms = [
     "DFS", "BFS", "Dijkstra", "Bellman", "Kruskal", "Prim"],
     direct_csv_files = {
         "DFS" : "./DFS_direct.csv",
@@ -61,20 +68,38 @@ function setup(name, directed) {
         };
 
         nodes = {};
+        algo_nodes = new Set();
+        undirect_ids = {};
 
         // Compute the distinct nodes from the links.
         links.forEach(function(link) {
-            link.source = nodes[link.source] || (nodes[link.source] = {name: link.source, adjacent: [], group: link.group});
-            link.target = nodes[link.target] || (nodes[link.target] = {name: link.target, adjacent: [], group: link.group});
+            link.source = nodes[link.source] || (nodes[link.source] = {name: link.source, adjacent: []});
+            link.target = nodes[link.target] || (nodes[link.target] = {name: link.target, adjacent: []});
 
 
             // set up adjacency list
-            nodes[link.source.name].adjacent.push( {node: nodes[link.target.name], edge: link} );
+            nodes[link.source.name].adjacent.push( {node: nodes[link.target.name]} );
             if (!isDirected) {
-                nodes[link.target.name].adjacent.push( {node: nodes[link.source.name], edge: link} );
+                nodes[link.target.name].adjacent.push( {node: nodes[link.source.name]} );
+
+                // if it's undirected need to figure out what edge ids to change the color of
+                a = link.target.name;
+                b = link.source.name;
+                if (a < b) {
+                    undirect_ids[a + b] = link.target.name + "->" + link.source.name;
+                } else {
+                    undirect_ids[b + a] = link.target.name + "->" + link.soure.name;
+                }
             }
 
+            // keep a set all of the nodes that are in the graph
+            algo_nodes.add(link.source.name);
+            algo_nodes.add(link.target.name);
+
         });
+
+        // we start at node A unless otherwise specified -> not yet implemented
+        start_node = nodes["A"];
 
         var w = 960,
             h = 600;
@@ -136,7 +161,7 @@ function setup(name, directed) {
             .attr("class", function(d) { return "link " + d.type; })
             .attr("id",function(d) { return d.source.name + "->" + d.target.name; })
             .attr("marker-end", function(d) { return "url(#" + "w=" + d.type + ")"; })
-            .style("stroke", "#666");
+            .style("stroke", start_edge_color);
 
         var linktext = svg.append("svg:g").selectAll("g.linklabelholder")
             .data(force.links())
@@ -159,7 +184,7 @@ function setup(name, directed) {
            .enter().append("svg:circle")
             .attr("r", 20)
             .attr("id", function(d) {return d.name})
-            .style("fill", "#0066FF")
+            .style("fill", start_node_color)
             .call(force.drag);
 
 
@@ -173,6 +198,9 @@ function setup(name, directed) {
              .style("font-size", "13px")
             .text(function(d) { return d.name; })
             .attr("id", function(d) {return "node_text:" + d.name});
+
+        // A graph exists so we can run algorithms
+        isSetup = true;
 
         // Use elliptical arc path segments to doubly-encode directionality.
         function tick() {
@@ -198,10 +226,30 @@ function setup(name, directed) {
 };
 
 function run() {
+
+    //check if a graph has been built yet
+    if (!isSetup) {
+        setup(cur_algorithm, isDirected);
+    }
+
+    switch(cur_algorithm) {
+        case 0: DFS(); break;
+        case 1: BFS(); break;
+        case 2: Dijsktra(); break;
+        case 3: Bellman(); break;
+        case 4: Kruskal(); break;
+        case 5: Prim(); break;
+        default:
+            break;
+    }
+
+    isSetup = false;
+
     // Grab a node and change its color after it is made
-    document.getElementById("A").setAttribute("style", "fill : #FF0000");
-    document.getElementById("A->B").setAttribute("style", "stroke: #FF0000");
-    document.getElementById("node_text:A").innerHTML = "A=inf"
+    // document.getElementById("A").setAttribute("style", "fill : #FF0000");
+    // document.getElementById("A->B").setAttribute("style", "stroke: #FF0000");
+    // document.getElementById("node_text:A").innerHTML = "A=inf"
+    return;
 }
 
 function MST_error() {
