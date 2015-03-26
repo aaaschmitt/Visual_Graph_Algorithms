@@ -86,9 +86,9 @@ function setup(name, directed) {
                 a = link.target.name;
                 b = link.source.name;
                 if (a < b) {
-                    undirect_ids[a + b] = link.target.name + "->" + link.source.name;
+                    undirect_ids[a + b] = link.source.name + "->" + link.target.name;
                 } else {
-                    undirect_ids[b + a] = link.target.name + "->" + link.soure.name;
+                    undirect_ids[b + a] = link.source.name + "->" + link.target.name;
                 }
             }
 
@@ -100,6 +100,7 @@ function setup(name, directed) {
 
         // we start at node A unless otherwise specified -> not yet implemented
         start_node = nodes["A"];
+        console.log(start_node);
 
         var w = 960,
             h = 600;

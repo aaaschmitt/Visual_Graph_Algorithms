@@ -1,28 +1,30 @@
 //Utility for coloring nodes and edges.
 
 //flashes a components color betweent the start color
-// and a new color
-function flash_color(id, isEdge) {
+// and a new color. leaves the componenet as its original color
+function flash_color(id, string, isEdge) {
 	var color_flash = "",
 		start_color = "",
-		num_flashes = 4;
+		flash_dur = 1000,
+		num_flashes = 3;
 	switch(string) {
-		case "visited": color_flash = "#33CC33";
+		case "v": color_flash = "#33CC33";
 					break;
-		case "next": color_flash = "#FF0000";
+		case "n": color_flash = "#FF0000";
 					break;
 		default:
 			console.log("incorrect color string passed to flash_color()");
 			break;
 	}
 	if (isEdge) {
-		start_color = document.getElementbyID(id).style.stroke
+		console.log(id);
+		start_color = document.getElementById(id).style.stroke
 	} else {
-		start_color = document.getElementsById(id).style.fill
+		start_color = document.getElementById(id).style.fill
 	}
 	for (i=0; i<num_flashes; i++) {
 		color(id, flash_color, isEdge);
-		setTimeout(color(id, start_color, isEdge), 500);
+		setTimeout(color(id, start_color, isEdge), flash_dur);
 	}
 }
 
@@ -39,5 +41,10 @@ function color(id, color, isEdge) {
 	} else {
 		attr = "fill : "
 	}
-	document.getElementbyID(id).setAttribute("style", attr + color);
+	document.getElementById(id).setAttribute("style", attr + color);
+}
+
+// grabs a node and changes its text value
+function change_node_text(id, text) {
+	document.getElementById("node_text:" + id).innerHTML = text;
 }
