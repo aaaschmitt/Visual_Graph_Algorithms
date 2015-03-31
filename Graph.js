@@ -32,6 +32,18 @@ var algorithms = [
         "Prim" : "Prim.csv"
     };
 
+//intialize the weight arrays for edge data labels
+//only need to build these arrays once
+var max = 100,
+    pos_weights = [],
+    neg_weights = [];
+
+for (i=0; i < max+1; i++) {
+    pos_weights.push("w=" + i);
+};
+for (i=(-1*max); i < max+1; i++) {
+    pos_weights.push("w=" + i);
+};
 function setup(name, directed) {
 
     //set current algorihtm for graph
@@ -63,6 +75,7 @@ function setup(name, directed) {
     x.className = "";
 
     d3.csv(csv, function(error, links) {
+        
         //sort links by target
         links.sort(function(a,b) {
             if (a.target > b.target) {return 1;}
@@ -136,27 +149,25 @@ function setup(name, directed) {
             .attr("height", h)
             .style("background" ,"#FFFFFF");
 
-        var max = 20;
+        //initialize weights such that we can build the edge labels
         var weights = [];
         if (isPositive) {
-            for (i=1; i < max; i++) {
-                weights.push("w=" + i);
-            };
+            weights = pos_weights;
         } else {
-            for (i=-max; i < max; i++){
-                weights.push("w=" + i);
-            };
+            weights = neg_weights;
         };
 
+        //arrow size for directed graphs
         var marker_h = 5,
             marker_w = 5;
 
+        //just don't make arrows if graph isn't directed
         if (!isDirected) {
             marker_h=0;
             marker_w=0;
         }
 
-        // Per-type markers, as they don't inherit styles.
+        // Pre-type markers, as they don't inherit styles.
         svg.append("svg:defs").selectAll("marker")
             .data(weights)
           .enter().append("svg:marker")
@@ -170,6 +181,7 @@ function setup(name, directed) {
           .append("svg:path")
             .attr("d", "M0,-5L10,0L0,5");
 
+        //build paths (edges)
         var path = svg.append("svg:g").selectAll("path")
             .data(force.links())
           .enter().append("svg:path")
@@ -178,6 +190,7 @@ function setup(name, directed) {
             .attr("marker-end", function(d) { return "url(#" + "w=" + d.type + ")"; })
             .style("stroke", start_edge_color);
 
+        //append edge labels to paths
         var linktext = svg.append("svg:g").selectAll("g.linklabelholder")
             .data(force.links())
           .enter().append("g").attr("class", "linklabelholder")
@@ -193,7 +206,8 @@ function setup(name, directed) {
              .text(function(d) { 
              return d.type; 
              });
-            
+        
+        //build svg circles for nodes
         var circle = svg.append("svg:g").selectAll("circle")
             .data(force.nodes())
            .enter().append("svg:circle")
@@ -202,11 +216,12 @@ function setup(name, directed) {
             .style("fill", start_node_color)
             .call(force.drag);
 
-
+        //initialzie text to be appended to the circles
         var text = svg.append("svg:g").selectAll("g")
             .data(force.nodes())
           .enter().append("svg:g");
 
+        //append node names to svg circles
         text.append("svg:text")
             .attr("x", "-.5em")
             .attr("y", ".31em")
