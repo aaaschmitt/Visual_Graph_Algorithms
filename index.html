@@ -5,14 +5,15 @@
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 <script src="http://d3js.org/d3.v3.js"></script>
-<script src="./Graph.js"></script>
 <script src="./coloring.js"></script>
+<script src="./Graph.js"></script>
 <script src="./DFS.js"></script>
+<script src="./BFS.js"></script>
 <style>
 
 path.link {
   fill: none;
-  stroke-width: 1.5px;
+  stroke-width: 3.75px;
 }
 
 circle {
@@ -30,7 +31,6 @@ text {
 </style>
 
 <h1>Graph Algorithms</h1>
-<br>
 
 <!-- Algorithm Setup Buttons -->
 <div class="btn-toolbar" role="toolbar" aria-label="...">
@@ -56,12 +56,22 @@ text {
 		<button onclick="isDirected = true; setup(cur_algorithm, isDirected);" type="button" class="btn btn-warning">Directed</button>
 		<button onclick="isDirected = false; setup(cur_algorithm, isDirected);" type="button" class="btn btn-warning">Un-Directed</button>
 	</div>
+  <div class="btn-group" role="group" aria-label="...">
+    <button onclick="flash_int = 300;" type="button" class="btn btn-warning">Slow</button>
+    <button onclick="flash_int = 200" type="button" class="btn btn-warning">Medium</button>
+    <button onclick="flash_int = 100" type="button" class="btn btn-warning">Fast</button>
+    <button onclick="flash_int = 50" type="button" class="btn btn-warning">Very Fast</button>
+  </div>
 	<div class="btn-group" role="group" aria-label="...">
 		<button onclick="run()" type="button" class="btn btn-danger">Run Algorithm!</button>
 	</div>
 </div>
 
 <br>
+
+<!-- Display error messages here -->
+<div id="error">
+</div>
 
 <!-- This is what we build the graph on. -->
 <div class="graph">

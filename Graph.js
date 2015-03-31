@@ -2,13 +2,15 @@
 var cur_algorithm = 0,
     isDirected = false,
     isPositive = true,
-    isSetup = false;
+    isSetup = false,
+    run_next = false,
     nodes = {},
     force = "",
     algo_nodes = new Set(),
     start_node_color = "#0066FF",
     start_edge_color = "#666",
-    undirect_ids = {};
+    undirect_ids = {}
+    edge_weights = {};
 
 // Files containing the graphs
 var algorithms = [
@@ -31,10 +33,11 @@ var algorithms = [
     };
 
 function setup(name, directed) {
-    var x = document.getElementsByClassName("graph");
-    x[0].innerHTML = "";
+
+    //set current algorihtm for graph
     cur_algorithm = name;
-    // choose which data to use
+
+    // choose which data to use or error
     var csv = "";
     if (directed) {
         csv = direct_csv_files[algorithms[name]];
@@ -48,6 +51,16 @@ function setup(name, directed) {
     }
 
     console.log(csv);
+
+    //clear canvas and any currently running events
+    var x = document.getElementsByClassName("graph");
+    x[0].innerHTML = "";
+    clear_events();
+
+    // reset error display to be empty
+    var x = document.getElementById("error");
+    x.innerHTML = "";
+    x.className = "";
 
     d3.csv(csv, function(error, links) {
         //sort links by target
@@ -79,17 +92,23 @@ function setup(name, directed) {
 
             // set up adjacency list
             nodes[link.source.name].adjacent.push( {node: nodes[link.target.name]} );
+
+            a = link.target.name;
+            b = link.source.name;
+
             if (!isDirected) {
                 nodes[link.target.name].adjacent.push( {node: nodes[link.source.name]} );
 
                 // if it's undirected need to figure out what edge ids to change the color of
-                a = link.target.name;
-                b = link.source.name;
                 if (a < b) {
                     undirect_ids[a + b] = link.source.name + "->" + link.target.name;
+                    edge_weights[a + b] = link.type;
                 } else {
                     undirect_ids[b + a] = link.source.name + "->" + link.target.name;
+                    edge_weights[b + a] = link.type;
                 }
+            } else {
+                edge_weights[a + b] = link.type;
             }
 
             // keep a set all of the nodes that are in the graph
@@ -98,8 +117,8 @@ function setup(name, directed) {
 
         });
 
-        var w = 960,
-            h = 600;
+        var w = 800,
+            h = 500;
 
         force = d3.layout.force()
             .nodes(d3.values(nodes))
@@ -108,15 +127,14 @@ function setup(name, directed) {
             .linkDistance(150)
             .charge(-1000)
             .linkStrength(.9)
+            .gravity(.15)
             .on("tick", tick)
             .start();
-
-        console.log(force.nodes());
 
         var svg = d3.select("div.graph").append("svg:svg")
             .attr("width", w)
             .attr("height", h)
-            .style("background" ,"#FFF7DB");
+            .style("background" ,"#FFFFFF");
 
         var max = 20;
         var weights = [];
@@ -130,8 +148,8 @@ function setup(name, directed) {
             };
         };
 
-        var marker_h = 10,
-            marker_w = 10;
+        var marker_h = 5,
+            marker_w = 5;
 
         if (!isDirected) {
             marker_h=0;
@@ -144,7 +162,7 @@ function setup(name, directed) {
           .enter().append("svg:marker")
             .attr("id", String)
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 24)
+            .attr("refX", 20)
             .attr("refY", 0)
             .attr("markerWidth", marker_w)
             .attr("markerHeight", marker_h)
@@ -156,7 +174,7 @@ function setup(name, directed) {
             .data(force.links())
           .enter().append("svg:path")
             .attr("class", function(d) { return "link " + d.type; })
-            .attr("id",function(d) { return d.source.name + "->" + d.target.name; })
+            .attr("id", function(d) { return d.source.name + "->" + d.target.name; })
             .attr("marker-end", function(d) { return "url(#" + "w=" + d.type + ")"; })
             .style("stroke", start_edge_color);
 
@@ -165,9 +183,9 @@ function setup(name, directed) {
           .enter().append("g").attr("class", "linklabelholder")
              .append("text")
              .attr("class", "linklabel")
-             .style("font-size", "13px")
-             .attr("x", "50")
-             .attr("y", "-20")
+             .style("font-size", "18px")
+             .attr("x", "60")
+             .attr("y", "100")
              .attr("text-anchor", "start")
              .style("fill","#000")
              .append("textPath")
@@ -190,14 +208,18 @@ function setup(name, directed) {
           .enter().append("svg:g");
 
         text.append("svg:text")
-            .attr("x", "-1em")
+            .attr("x", "-.5em")
             .attr("y", ".31em")
-             .style("font-size", "13px")
+             .style("font-size", "15px")
             .text(function(d) { return d.name; })
             .attr("id", function(d) {return "node_text:" + d.name});
 
         // A graph exists so we can run algorithms
         isSetup = true;
+        if (run_next) {
+            run_next = false;
+            run();
+        }
 
         // Use elliptical arc path segments to doubly-encode directionality.
         function tick() {
@@ -224,35 +246,39 @@ function setup(name, directed) {
 
 function run() {
 
+    //clear any currently running events
+    clear_events();
+
     //check if a graph has been built yet
     if (!isSetup) {
+        run_next = true;
         setup(cur_algorithm, isDirected);
+    } else {
+
+        //compute a static layout just before starting algorithm
+        for (var i = 0; i < 500; ++i) force.tick();
+        force.stop();
+
+        switch(cur_algorithm) {
+            case 0: DFS(); break;
+            case 1: BFS(); break;
+            case 2: Dijkstra(); break;
+            case 3: Bellman(); break;
+            case 4: Kruskal(); break;
+            case 5: Prim(); break;
+            default:
+                break;
+        }
+
+        isSetup = false;
+
+        return;
     }
-
-    force.stop();
-
-    switch(cur_algorithm) {
-        case 0: DFS(); break;
-        case 1: BFS(); break;
-        case 2: Dijsktra(); break;
-        case 3: Bellman(); break;
-        case 4: Kruskal(); break;
-        case 5: Prim(); break;
-        default:
-            break;
-    }
-
-    isSetup = false;
-
-    // Grab a node and change its color after it is made
-    // document.getElementById("A").setAttribute("style", "fill : #FF0000");
-    // document.getElementById("A->B").setAttribute("style", "stroke: #FF0000");
-    // document.getElementById("node_text:A").innerHTML = "A=inf"
-    return;
 }
 
 function MST_error() {
-    var x = document.getElementsByClassName("graph");
-    x[0].innerHTML = algorithms[cur_algorithm] + "'s is only defined for un-directed graphs! As are all MST algorithms.";
+    var x = document.getElementById("error");
+    x.innerHTML = algorithms[cur_algorithm] + "'s is only defined for Un-Directed graphs! As are all MST algorithms.";
+    x.className = "alert alert-danger"
     return "";
 };
