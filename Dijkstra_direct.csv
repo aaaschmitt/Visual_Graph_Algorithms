@@ -1,0 +1,8 @@
+source,target,value,type
+A,B,1,4
+A,C,1,2
+C,B,1,1
+B,D,1,2
+C,D,1,4
+C,E,1,5
+E,D,1,1

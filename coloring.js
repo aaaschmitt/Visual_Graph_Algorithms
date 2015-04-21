@@ -1,35 +1,26 @@
-//Utility for coloring nodes and edges.
+/* Utility for coloring nodes and edges. */
 
-//flashes a components color betweent the start color
-// and a new color. leaves the componenet as its original color
 var flash_time = 0;
 var flash_int = 200;
 var timeout_ids = [];
 
-//id - name of node
-//string - signal for type of color
-//isEdge - boolean dentoting whether the object is an edge
-//incr - boolean indicating whether to increment the event clock (allows for synchronour events)
-//change - determines whether to change the node color
-//Flashes the color of a node or edge
-function flash_color(id, string, isEdge, incr, change) {
-	var color_flash = "",
+/**
+ * Flashes the color of a node or edge:
+ * id - name of node
+ * color - color to flash to
+ * isEdge - boolean dentoting whether the object is an edge
+ * incr - boolean indicating whether to increment the event clock (allows for synchronous events)
+ * change - determines whether to change the node color
+ */
+function flash_color(id, new_color, isEdge, incr, change) {
+	var color_flash = new_color,
 		start_color = "",
 		num_flashes = 3;
-	switch(string) {
-		case "v": color_flash = "#33CC33";
-					break;
-		case "n": color_flash = "#FF0000";
-					break;
-		default:
-			console.log("incorrect color string passed to flash_color()");
-			return;
-	}
+		element = document.getElementById(id);
 	if (isEdge) {
-		console.log("this edge's id is:" + id);
-		start_color = document.getElementById(id).style.stroke
+		start_color = window.getComputedStyle(element, null).getPropertyValue("stroke");
 	} else {
-		start_color = document.getElementById(id).style.fill
+		start_color = window.getComputedStyle(element, null).getPropertyValue("fill");
 	}
 
 	var temp_flash_time = flash_time;
@@ -42,7 +33,6 @@ function flash_color(id, string, isEdge, incr, change) {
 	}
 	//change color to new value if set
 	if(change) {
-		console.log("changing color of node:" + id + " to " + color_flash);
 		flash_time += flash_int;
 		color(id, color_flash, isEdge);
 	}
@@ -53,11 +43,13 @@ function flash_color(id, string, isEdge, incr, change) {
 }
 
 
-//Colors a node or edge in graph based on whether it is up next, 
-//it has aleady been visited, or the value it starts as
-//visited - green - #33CC33
-//next - red - #FF0000
-//start - whatever start color is set to
+/**
+ * Colors a node or edge in graph based on whether it is up next, 
+ * it has aleady been visited, or the value it starts as
+ * visited - green - #33CC33
+ * next - red - #FF0000
+ * start - whatever start color is set to
+ */
 function color(id, color, isEdge) {
 	var attr = "";
 	if (isEdge) {
@@ -68,13 +60,21 @@ function color(id, color, isEdge) {
 	timeout_ids.push ( setTimeout(function() { document.getElementById(id).setAttribute("style", attr + color); }, flash_time) );
 }
 
-// grabs a node and changes its text value
-function change_node_text(id, text) {
-	flash_time += 3 * flash_int;
+/**
+ * Changes a node's text. 
+ * If INCR is false do not change the clock
+ */
+function change_node_text(id, text, incr) {
+	if (incr) {
+		flash_time += 3 * flash_int;
+	}
 	timeout_ids.push( setTimeout(function() { document.getElementById("node_text:" + id).innerHTML = text; }, flash_time) );
 }
 
-//clears all currently running timeout events and restes the timeout_ids array
+/**
+ * Clears all currently running timeout events
+ * and restes the timeout_ids array
+ */
 function clear_events() {
 	for (i=0; i<timeout_ids.length; i++) {
 		clearTimeout(timeout_ids[i]);

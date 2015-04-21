@@ -1,6 +1,4 @@
-//BFS traversal of the d3 force graph
-
-//BFS traversal of the d3 force directed graph
+/* BFS traversal of the d3 force directed graph */
 var previsit_color = "#990099";
 
 function BFS() {
@@ -42,34 +40,37 @@ function BFS() {
 	});
 };
 
-//previsits a node coloring red for 
-//previsited and also updates its previsit number
+/** 
+ * previsits a node coloring purple for 
+ * previsited (i.e. out of the queue) and also 
+ * updates its previsit number
+ */
 function BFS_previsit(id) {
 	pre_nums[id] = clock;
 	flash_time += flash_int;
 	color(id, previsit_color, false);
-	change_node_text(id, id+"["+clock);
+	change_node_text(id, id+"["+clock, true);
 	clock += 1;
 };
 
-//visits a node via an edge. flashes the edge and node red
-//and then changes the edge to green
+/**
+ * visits a node via an edge. flashes the edge and node red
+ * and then changes the edge to green
+ */
 function BFS_visit(node_id, descend_id) {
-	var edge_id;
-	if (isDirected) {
-		edge_id = node_id + "->" + descend_id;
-	} else {
-		edge_id = get_undirected_edge_id(node_id, descend_id);
-	}
-	flash_color(edge_id, "n", true, false, false);
-	flash_color(descend_id, "n", false, true, true);
+	var edge_id = get_edge_id(node_id, descend_id)
+	flash_color(edge_id, next_color, true, false, false);
+	flash_color(descend_id, next_color, false, true, true);
 	flash_time += flash_int;
 	color(edge_id, post_visited_color, true);
 }
 
-//postvisits a node by updating its node text to include the postvisit number
+/**
+ * postvisits a node by updating its node text to include the postvisit number
+ * also changes the nodes color to green
+ */
 function BFS_postvisit(id) {
-	change_node_text(id, id + "[" + pre_nums[id] + "," + clock + "]");
+	change_node_text(id, id + "[" + pre_nums[id] + "," + clock + "]", true);
 	color(id, post_visited_color, false);
 	clock += 1;
 };

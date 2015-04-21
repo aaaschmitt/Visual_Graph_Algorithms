@@ -1,0 +1,14 @@
+source,target,value,type
+G,D,1,10
+G,H,1,5
+D,H,1,6
+A,D,1,7
+A,B,1,4
+A,C,1,12
+C,F,1,13
+B,F,1,15
+B,E,1,2
+E,I,1,18
+E,J,1,9
+I,J,1,6
+K,L,1,5

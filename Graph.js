@@ -9,7 +9,7 @@ var cur_algorithm = 0,
     algo_nodes = new Set(),
     start_node_color = "#0066FF",
     start_edge_color = "#666",
-    undirect_ids = {}
+    edge_ids = {}
     edge_weights = {};
 
 // Files containing the graphs
@@ -41,9 +41,14 @@ var max = 100,
 for (i=0; i < max+1; i++) {
     pos_weights.push("w=" + i);
 };
+
 for (i=(-1*max); i < max+1; i++) {
     pos_weights.push("w=" + i);
 };
+
+/**
+ * This build the graph based on the current selection
+ */
 function setup(name, directed) {
 
     //set current algorihtm for graph
@@ -95,7 +100,8 @@ function setup(name, directed) {
 
         nodes = {};
         algo_nodes = new Set();
-        undirect_ids = {};
+        edge_ids = {},
+        edge_weights = {};
 
         // Compute the distinct nodes from the links.
         links.forEach(function(link) {
@@ -106,27 +112,28 @@ function setup(name, directed) {
             // set up adjacency list
             nodes[link.source.name].adjacent.push( {node: nodes[link.target.name]} );
 
-            a = link.target.name;
-            b = link.source.name;
+            a = link.source.name;
+            b = link.target.name;
 
             if (!isDirected) {
                 nodes[link.target.name].adjacent.push( {node: nodes[link.source.name]} );
 
                 // if it's undirected need to figure out what edge ids to change the color of
                 if (a < b) {
-                    undirect_ids[a + b] = link.source.name + "->" + link.target.name;
-                    edge_weights[a + b] = link.type;
+                    edge_ids[a + b] = a + "->" + b;
+                    edge_weights[a + b] = Number(link.type);
                 } else {
-                    undirect_ids[b + a] = link.source.name + "->" + link.target.name;
-                    edge_weights[b + a] = link.type;
+                    edge_ids[b + a] = a + "->" + b;
+                    edge_weights[b + a] = Number(link.type);
                 }
             } else {
-                edge_weights[a + b] = link.type;
+                edge_ids[a + b] = a + "->" + b;
+                edge_weights[a + b] = Number(link.type);
             }
 
             // keep a set all of the nodes that are in the graph
-            algo_nodes.add(link.source.name);
-            algo_nodes.add(link.target.name);
+            algo_nodes.add(a);
+            algo_nodes.add(b);
 
         });
 
@@ -259,6 +266,9 @@ function setup(name, directed) {
     });
 };
 
+/**
+ * Attmept to run the currently selected algorithm
+ */
 function run() {
 
     //clear any currently running events
@@ -291,6 +301,33 @@ function run() {
     }
 }
 
+/**
+ * Returns the edge id for an edge from
+ * NODE_ID to DESCEND_ID
+ */
+function get_edge_id(node_id, descend_id) {
+    if (node_id < descend_id || isDirected) {
+        return edge_ids[node_id+descend_id];
+    } else {
+        return edge_ids[descend_id+node_id];
+    }
+};
+
+function get_weight_id(node_id, descend_id) {
+    if (isDirected) {
+        return node_id + descend_id
+    }
+    if (node_id < descend_id) {
+        return node_id+descend_id;
+    } else {
+        return descend_id+node_id;
+    }
+}
+
+/**
+ * Error message if user attempts to 
+ * run MST on a directed graph
+ */
 function MST_error() {
     var x = document.getElementById("error");
     x.innerHTML = algorithms[cur_algorithm] + "'s is only defined for Un-Directed graphs! As are all MST algorithms.";
