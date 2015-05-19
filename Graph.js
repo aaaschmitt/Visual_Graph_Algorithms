@@ -20,8 +20,8 @@ var algorithms = [
         "BFS" : "./BFS_direct.csv",
         "Dijkstra" : "./Dijkstra_direct.csv",
         "Bellman" : "./Bellman_direct.csv",
-        "Kruskal" : "",
-        "Prim" : ""
+        "Kruskal" : 1,
+        "Prim" : 1
     },
     undirect_csv_files = {
         "DFS" : "./DFS_undirect.csv",
@@ -62,7 +62,7 @@ function setup(name, directed) {
         csv = undirect_csv_files[algorithms[name]];
     }
 
-    if (csv == "") {
+    if (csv == 1) {
         MST_error();
         return;
     }
@@ -176,9 +176,11 @@ function setup(name, directed) {
 
         // Pre-type markers, as they don't inherit styles.
         svg.append("svg:defs").selectAll("marker")
-            .data(weights)
+            .data(force.links())
           .enter().append("svg:marker")
-            .attr("id", String)
+            .attr("id", function(d) { 
+                            return d.source.name + "->" + d.target.name + "=" + d.type;
+                        })
             .attr("viewBox", "0 -5 10 10")
             .attr("refX", 20)
             .attr("refY", 0)
@@ -194,7 +196,7 @@ function setup(name, directed) {
           .enter().append("svg:path")
             .attr("class", function(d) { return "link " + d.type; })
             .attr("id", function(d) { return d.source.name + "->" + d.target.name; })
-            .attr("marker-end", function(d) { return "url(#" + "w=" + d.type + ")"; })
+            .attr("marker-end", function(d) { return "url(#" + d.source.name + "->" + d.target.name + "=" + d.type + ")"; })
             .style("stroke", start_edge_color);
 
         //append edge labels to paths
