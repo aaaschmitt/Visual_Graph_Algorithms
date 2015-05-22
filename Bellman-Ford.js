@@ -83,7 +83,7 @@ function update(edge) {
 	flash_color(get_edge_id(u, v), UPDATING_COLOR, true, true, true);
 
 	if (dist[u] == MAX_NUM) {
-		return;
+		return false;
 	}
 	
 	var new_dist = dist[u] + get_weight(u, v);
