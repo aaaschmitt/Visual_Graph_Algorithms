@@ -5,13 +5,14 @@ var dist = {},
 	prev = {},
 	shortest_path_tree = new Set(),
 	INFINITY_TEXT = "&#8734"
-	MAX_NUM = Number.MAX_VALUE;
+	MAX_NUM = Number.MAX_VALUE,
+	start_node = 'A';
 
 //colors for visualization
-var on_heap_color = "#FF0000",
-	off_heap_color = "#33CC33",
-	update_color = "#FB46FC",
-	unused_color = "#E6E6E6";
+var ON_HEAP_COLOR = "#FF0000",
+	SHORTEST_TREE_COLOR = "#33CC33",
+	UPDATE_COLOR = "#FB46FC",
+	UNUSED_COLOR = "#E6E6E6";
 
 function Dijkstra() {
 	flash_time = 0;
@@ -23,23 +24,20 @@ function Dijkstra() {
 	//values initialized to infinity
 	//and a dict of previous values initialized to NULL
 	algo_nodes.forEach(function(node) {
-		color(node, on_heap_color, false);
+		color(node, ON_HEAP_COLOR, false);
 		setDistance(node, MAX_NUM);
 		prev[node] = null;
 	});
 	flash_time += flash_int;
 
-	//start at node A
-	setDistance('A', 0);
+	//set start node dist to 0
+	setDistance(start_node, 0);
+	flash_time += flash_int;
 
 	//Initialize heap
 	var H = new Heap(dist);
 
-	console.log("hello");
-
 	while (H.size() > 0) {
-
-		console.log(H.size());
 
 		//find node with smallest dist and remove from Heap
 		var node_id = H.deleteMin();
@@ -49,7 +47,7 @@ function Dijkstra() {
 		if (prev_node != null) {
 			prev_edge_id = get_edge_id(prev_node, node_id);
 			shortest_path_tree.add(prev_edge_id);
-			color(prev_edge_id, off_heap_color, true);
+			color(prev_edge_id, SHORTEST_TREE_COLOR, true);
 		}
 
 		//If the min node that we pop off has a dist 
@@ -60,7 +58,7 @@ function Dijkstra() {
 		}
 
 		//flash this node as being off the heap and color it as such
-		flash_color(node_id, off_heap_color, false, true, true);
+		flash_color(node_id, SHORTEST_TREE_COLOR, false, true, true);
 		cur_node = nodes[node_id];
 
 		//iterate over outgoing edges and update dist values
@@ -74,19 +72,18 @@ function Dijkstra() {
 
 				//get edge weight
 				edge_id = get_edge_id(node_id, descend_id)
-				weight_id = get_weight_id(node_id, descend_id);
-				weight = edge_weights[weight_id];
+				weight = get_weight(node_id, descend_id);
 
 				//color the edge and the node being visited
-				flash_color(descend_id, update_color, false, false, false);
-				flash_color(edge_id, update_color, true, true, false);
+				flash_color(descend_id, UPDATE_COLOR, false, false, false);
+				flash_color(edge_id, UPDATE_COLOR, true, true, false);
 
 				//color the node red since it is still on the heap
-				color(descend_id, on_heap_color, false);
+				color(descend_id, ON_HEAP_COLOR, false);
 
 				//color edge as as near-white to distinguish from nodes 
 				//later on that will form the shortest paths tree
-				color(edge_id, unused_color, true);
+				color(edge_id, UNUSED_COLOR, true);
 
 				//get dist values
 				cur_dist = dist[descend_id];
@@ -102,13 +99,11 @@ function Dijkstra() {
 		})
 	}
 
-	console.log("finished the loop");
-
 	//ensure that all edges that are not in the 
 	//shortest path tree are colored near-white
 	for (id in edge_ids) {
 		if (!shortest_path_tree.has(edge_ids[id])) {
-			color(edge_ids[id], unused_color, true);
+			color(edge_ids[id], UNUSED_COLOR, true);
 		}
 	}
 }

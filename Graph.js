@@ -7,10 +7,12 @@ var cur_algorithm = 0,
     nodes = {},
     force = "",
     algo_nodes = new Set(),
-    start_node_color = "#0066FF",
-    start_edge_color = "#666",
-    edge_ids = {}
-    edge_weights = {};
+    algo_edges = new Set(),
+    START_NODE_COLOR = "#0066FF",
+    START_EDGE_COLOR = "#666",
+    edge_ids = {},
+    edge_weights = {}
+    NUM_NODES = 0;
 
 // Files containing the graphs
 var algorithms = [
@@ -31,20 +33,6 @@ var algorithms = [
         "Kruskal" : "./Kruskal.csv",
         "Prim" : "Prim.csv"
     };
-
-//intialize the weight arrays for edge data labels
-//only need to build these arrays once
-var max = 100,
-    pos_weights = [],
-    neg_weights = [];
-
-for (i=0; i < max+1; i++) {
-    pos_weights.push("w=" + i);
-};
-
-for (i=(-1*max); i < max+1; i++) {
-    pos_weights.push("w=" + i);
-};
 
 /**
  * This build the graph based on the current selection
@@ -98,10 +86,18 @@ function setup(name, directed) {
             else {links[i].linknum = 1;};
         };
 
+        //the nodes of the graph containing their adjacent nodes
         nodes = {};
-        algo_nodes = new Set();
-        edge_ids = {},
+        //the ids corresponding to each edge
+        edge_ids = {};
+        //the list of edge weights accessed by edge_id
         edge_weights = {};
+        //set of edges as strings
+        algo_edges = new Set();
+        //a set of nodes as strings
+        algo_nodes = new Set();
+        //initialize the number of nodes to 0
+        NUM_NODES = 0;
 
         // Compute the distinct nodes from the links.
         links.forEach(function(link) {
@@ -118,6 +114,10 @@ function setup(name, directed) {
             if (!isDirected) {
                 nodes[link.target.name].adjacent.push( {node: nodes[link.source.name]} );
 
+                //add edges in both directions if directed
+                algo_edges.add(a+b);
+                algo_edges.add(b+a);
+
                 // if it's undirected need to figure out what edge ids to change the color of
                 if (a < b) {
                     edge_ids[a + b] = a + "->" + b;
@@ -127,13 +127,21 @@ function setup(name, directed) {
                     edge_weights[b + a] = Number(link.type);
                 }
             } else {
+                algo_edges.add(a+b);
                 edge_ids[a + b] = a + "->" + b;
                 edge_weights[a + b] = Number(link.type);
             }
 
-            // keep a set all of the nodes that are in the graph
-            algo_nodes.add(a);
-            algo_nodes.add(b);
+            //keep a set of all nodes in the graph and count the number of unique nodes
+            if (!algo_nodes.has(a)) {
+                algo_nodes.add(a);
+                NUM_NODES += 1;
+            }
+            if (!algo_nodes.has(b)) {
+                algo_nodes.add(b);
+                NUM_NODES += 1;
+            }
+            
 
         });
 
@@ -156,14 +164,6 @@ function setup(name, directed) {
             .attr("height", h)
             .style("background" ,"#FFFFFF");
 
-        //initialize weights such that we can build the edge labels
-        var weights = [];
-        if (isPositive) {
-            weights = pos_weights;
-        } else {
-            weights = neg_weights;
-        };
-
         //arrow size for directed graphs
         var marker_h = 5,
             marker_w = 5;
@@ -179,7 +179,7 @@ function setup(name, directed) {
             .data(force.links())
           .enter().append("svg:marker")
             .attr("id", function(d) { 
-                            return d.source.name + "->" + d.target.name + "=" + d.type;
+                            return d.source.name + "->" + d.target.name + "$";
                         })
             .attr("viewBox", "0 -5 10 10")
             .attr("refX", 20)
@@ -188,7 +188,12 @@ function setup(name, directed) {
             .attr("markerHeight", marker_h)
             .attr("orient", "auto")
           .append("svg:path")
-            .attr("d", "M0,-5L10,0L0,5");
+            .attr("id", function(d) {
+                            return d.source.name + "->" + d.target.name + "c";
+                        })
+            .attr("d", "M0,-5L10,0L0,5")
+            .style("fill", START_EDGE_COLOR)
+            .attr("prev_color", START_EDGE_COLOR);
 
         //build paths (edges)
         var path = svg.append("svg:g").selectAll("path")
@@ -196,8 +201,9 @@ function setup(name, directed) {
           .enter().append("svg:path")
             .attr("class", function(d) { return "link " + d.type; })
             .attr("id", function(d) { return d.source.name + "->" + d.target.name; })
-            .attr("marker-end", function(d) { return "url(#" + d.source.name + "->" + d.target.name + "=" + d.type + ")"; })
-            .style("stroke", start_edge_color);
+            .attr("marker-end", function(d) { return "url(#" + d.source.name + "->" + d.target.name + "$" + ")"; })
+            .style("stroke", START_EDGE_COLOR)
+            .attr("prev_color", START_EDGE_COLOR);
 
         //append edge labels to paths
         var linktext = svg.append("svg:g").selectAll("g.linklabelholder")
@@ -222,7 +228,8 @@ function setup(name, directed) {
            .enter().append("svg:circle")
             .attr("r", 20)
             .attr("id", function(d) {return d.name})
-            .style("fill", start_node_color)
+            .style("fill", START_NODE_COLOR)
+            .attr("prev_color", START_NODE_COLOR)
             .call(force.drag);
 
         //initialzie text to be appended to the circles
@@ -245,7 +252,6 @@ function setup(name, directed) {
             run();
         }
 
-        // Use elliptical arc path segments to doubly-encode directionality.
         function tick() {
           path.attr("d", function(d) {
             var dx = d.target.x - d.source.x,
@@ -315,14 +321,14 @@ function get_edge_id(node_id, descend_id) {
     }
 };
 
-function get_weight_id(node_id, descend_id) {
+function get_weight(node_id, descend_id) {
     if (isDirected) {
-        return node_id + descend_id
+        return edge_weights[node_id + descend_id];
     }
     if (node_id < descend_id) {
-        return node_id+descend_id;
+        return edge_weights[node_id+descend_id];
     } else {
-        return descend_id+node_id;
+        return edge_weights[descend_id+node_id];
     }
 }
 

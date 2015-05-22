@@ -114,7 +114,7 @@ Heap.prototype.insert = function(elm) {
 	this.elms.add(elm);
 	this.pos[elm] = this.size();
 	this.h.push(elm);
-	this.bubbleUp(elm, this.size());
+	this.bubbleUp(elm, this.size()-1);
 }
 
 /**

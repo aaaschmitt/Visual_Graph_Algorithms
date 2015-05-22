@@ -1,17 +1,14 @@
 <!DOCTYPE html>
+<head>
 <meta charset="utf-8">
+<title>Visual Graph Algorithms</title>
 
-<!-- Bootstrap/Jquery cuz I'm lazy and D3 -->
-<!-- <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="http://d3js.org/d3.v3.js"></script> -->
+<!-- d3 and Bootstrap/Jquery cuz I'm lazy -->
 <script src="./support/jquery-1.11.3.min.js"></script>
 <link rel="stylesheet" href="./support/bootstrap-3.3.4/css/bootstrap.min.css"></link>
 <link rel="stylesheet" href="./support/bootstrap-3.3.4/css/bootstrap-theme.min.css"></link>
 <script src="./support/bootstrap-3.3.4/js/bootstrap.min.js"></script>
 <script src="./support/d3/d3.min.js"></script>
-
 
 <!-- Launcher and utils -->
 <script src="./Graph.js"></script>
@@ -22,6 +19,10 @@
 <script src="./DFS.js"></script>
 <script src="./BFS.js"></script>
 <script src="./Dijkstra.js"></script>
+<script src="./Bellman-Ford.js"></script>
+</head>
+
+<!-- That style -->
 <style>
 
 path.link { 
@@ -43,21 +44,21 @@ text {
 
 </style>
 
-<h1>Graph Algorithms</h1>
+<h1>Graph Algorithms by Andy Schmitt, UC Berkeley</h1>
 
 <!-- Algorithm Setup Buttons -->
 <div class="btn-toolbar" role="toolbar" aria-label="...">
   <div class="btn-group" role="group" aria-label="...">
-  	<button onclick="setup(0, isDirected);" type="button" class="btn btn-primary">DFS</button>
-  	<button onclick="setup(1, isDirected);" type="button" class="btn btn-primary">BFS</button>
+  	<button onclick="setup(0, isDirected);" type="algo" class="btn btn-primary active">DFS</button>
+  	<button onclick="setup(1, isDirected);" type="algo" class="btn btn-primary">BFS</button>
   </div>
   <div class="btn-group" role="group" aria-label="...">
-  	<button onclick="setup(2, isDirected);" type="button" class="btn btn-success">Dijkstra's</button>
-  	<button onclick="setup(3, isDirected);" type="button" class="btn btn-success">Bellman-Ford</button>
+  	<button onclick="setup(2, isDirected);" type="algo" class="btn btn-success">Dijkstra's</button>
+  	<button onclick="setup(3, isDirected);" type="algo" class="btn btn-success">Bellman-Ford</button>
   </div>
   <div class="btn-group" role="group" aria-label="...">
-  	<button onclick="setup(4, isDirected);" type="button" class="btn btn-info">Kruskal's</button>
-  	<button onclick="setup(5, isDirected);" type="button" class="btn btn-info">Prim's</button>
+  	<button onclick="setup(4, isDirected);" type="algo" class="btn btn-info">Kruskal's</button>
+  	<button onclick="setup(5, isDirected);" type="algo" class="btn btn-info">Prim's</button>
   </div>
 </div>
 
@@ -66,29 +67,41 @@ text {
 <!-- Directed and Undirected Buttons and Run button -->
 <div class="btn-toolbar" role="toolbar" aria-label="...">
 	<div class="btn-group" role="group" aria-label="...">
-		<button onclick="isDirected = true; setup(cur_algorithm, isDirected);" type="button" class="btn btn-warning">Directed</button>
-		<button onclick="isDirected = false; setup(cur_algorithm, isDirected);" type="button" class="btn btn-warning">Un-Directed</button>
+		<button onclick="isDirected = true; setup(cur_algorithm, isDirected);" type="direction" class="btn btn-warning">Directed</button>
+		<button onclick="isDirected = false; setup(cur_algorithm, isDirected);" type="direction" class="btn btn-warning active">Un-Directed</button>
 	</div>
   <div class="btn-group" role="group" aria-label="...">
-    <button onclick="flash_int = 300;" type="button" class="btn btn-warning">Slow</button>
-    <button onclick="flash_int = 200" type="button" class="btn btn-warning">Medium</button>
-    <button onclick="flash_int = 100" type="button" class="btn btn-warning">Fast</button>
-    <button onclick="flash_int = 50" type="button" class="btn btn-warning">Very Fast</button>
+    <button onclick="flash_int = 300;" type="speed" class="btn btn-warning">Slow</button>
+    <button onclick="flash_int = 200" type="speed" class="btn btn-warning active">Medium</button>
+    <button onclick="flash_int = 100" type="speed" class="btn btn-warning">Fast</button>
+    <button onclick="flash_int = 50" type="speed" class="btn btn-warning">Very Fast</button>
   </div>
 	<div class="btn-group" role="group" aria-label="...">
-		<button onclick="run()" type="button" class="btn btn-danger">Run Algorithm!</button>
+		<button onclick="run()" type="run" class="btn btn-danger">Run Algorithm!</button>
 	</div>
 </div>
+
+<!-- controls buttons -->
+<script>
+$(".btn").on("click", function(event) {
+  var elmType = $(this).attr("type");
+  if (elmType != 'run') {
+    $(".btn[type="+elmType+"]").removeClass("active");
+    $(this).addClass("active");
+  }
+  $(this).blur();   //don't want buttons to focus after selection
+})
+</script>
 
 <br>
 
-<!-- Display error messages here -->
-<div id="error">
+<!-- Display error/info messages here -->
+<div id="error" class="alert alert-info">
+  <h3> Choose one of the alogrithms above, along with its directedness, to build the graph. Then hit the run algorithm button. Remember that the MST algorithms, Kruskal's and Prim's, do not run on directed graphs. Feel free to drag the graph around however you want!</h3>
 </div>
 
 <!-- This is what we build the graph on. -->
-<div class="graph">
-  <h3> Choose one of the alogrithms above, along with its directedness, to build the graph. Then hit the run algorithm button. Remember that the MST algorithms, Kruskal's and Prim's, do not run on directed graphs. Feel free to drag the graph around however you want!</h3> 
+<div class="graph"> 
 </dv>
 
 </html>

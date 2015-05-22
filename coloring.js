@@ -6,6 +6,8 @@ var timeout_ids = [];
 
 /**
  * Flashes the color of a node or edge:
+ *
+ * @params
  * id - name of node
  * color - color to flash to
  * isEdge - boolean dentoting whether the object is an edge
@@ -53,11 +55,12 @@ function flash_color(id, new_color, isEdge, incr, change) {
 function color(id, color, isEdge) {
 	var attr = "";
 	if (isEdge) {
-		attr = "stroke : "
+		timeout_ids.push ( setTimeout(function() { document.getElementById(id).setAttribute("style", "stroke: " + color); }, flash_time) );
+		timeout_ids.push ( setTimeout(function() { document.getElementById(id + "c").setAttribute("style", "fill: " + color); }, flash_time) );
 	} else {
-		attr = "fill : "
+		attr = "fill : ";
+		timeout_ids.push ( setTimeout(function() { document.getElementById(id).setAttribute("style", "fill: " + color); }, flash_time) );
 	}
-	timeout_ids.push ( setTimeout(function() { document.getElementById(id).setAttribute("style", attr + color); }, flash_time) );
 }
 
 /**
