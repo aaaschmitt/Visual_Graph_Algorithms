@@ -1,20 +1,36 @@
-// control variables
+//Control variables
 var cur_algorithm = 0,
     isDirected = false,
     isPositive = true,
     isSetup = false,
-    run_next = false,
-    nodes = {},
-    force = "",
+    runNext = false;
+
+//Nodes and Links
+var nodes = {},
     algo_nodes = new Set(),
     algo_edges = new Set(),
-    START_NODE_COLOR = "#0066FF",
-    START_EDGE_COLOR = "#666",
     edge_ids = {},
-    edge_weights = {}
+    edge_weights = {},
     NUM_NODES = 0;
 
-// Files containing the graphs
+//Colors
+var START_NODE_COLOR = "#0066FF",
+    START_EDGE_COLOR = "#666",
+    CUR_BACKGROUND_COLOR = "#FFFFFF",
+    CUR_TEXT_COLOR = "#000000";
+
+//Shape attributes
+    START_NODE_RADIUS = 22,
+    START_EDGE_STROKE_WIDTH = "3.75px",
+    START_MARKER_REFX = 19;
+
+//The force graph
+var force;
+
+//Starting node for algorithms
+var START_NODE = 'A';
+
+//Files containing the graphs
 var algorithms = [
     "DFS", "BFS", "Dijkstra", "Bellman", "Kruskal", "Prim"],
     direct_csv_files = {
@@ -35,19 +51,19 @@ var algorithms = [
     };
 
 /**
- * This build the graph based on the current selection
+ * This builds the graph based on the current selection
  */
-function setup(name, directed) {
+function setup(index, directed) {
 
-    //set current algorihtm for graph
-    cur_algorithm = name;
+    cur_algorithm = index;
+    FLASH_TIME = 0;
 
     // choose which data to use or error
     var csv = "";
     if (directed) {
-        csv = direct_csv_files[algorithms[name]];
+        csv = direct_csv_files[algorithms[index]];
     } else {
-        csv = undirect_csv_files[algorithms[name]];
+        csv = undirect_csv_files[algorithms[index]];
     }
 
     if (csv == 1) {
@@ -58,14 +74,14 @@ function setup(name, directed) {
     console.log(csv);
 
     //clear canvas and any currently running events
-    var x = document.getElementsByClassName("graph");
-    x[0].innerHTML = "";
-    clear_events();
+    d3.select(".graph").html("");
+    clearEvents();
+    clearTree();
 
     // reset error display to be empty
-    var x = document.getElementById("error");
-    x.innerHTML = "";
-    x.className = "";
+    d3.select("#error")
+        .html("")
+        .attr("class", "");
 
     d3.csv(csv, function(error, links) {
         
@@ -77,14 +93,14 @@ function setup(name, directed) {
         });
 
         //any links with duplicate source and target get an incremented 'linknum'
-        for (var i=0; i<links.length; i++) {
-            if (i != 0 &&
-                links[i].source == links[i-1].source &&
-                links[i].target == links[i-1].target) {
-                    links[i].linknum = links[i-1].linknum + 1;
-                }
-            else {links[i].linknum = 1;};
-        };
+        // for (var i=0; i<links.length; i++) {
+        //     if (i != 0 &&
+        //         links[i].source == links[i-1].source &&
+        //         links[i].target == links[i-1].target) {
+        //             links[i].linknum = links[i-1].linknum + 1;
+        //         }
+        //     else {links[i].linknum = 1;};
+        // };
 
         //the nodes of the graph containing their adjacent nodes
         nodes = {};
@@ -120,15 +136,15 @@ function setup(name, directed) {
 
                 // if it's undirected need to figure out what edge ids to change the color of
                 if (a < b) {
-                    edge_ids[a + b] = a + "->" + b;
+                    edge_ids[a + b] = a + b;
                     edge_weights[a + b] = Number(link.type);
                 } else {
-                    edge_ids[b + a] = a + "->" + b;
+                    edge_ids[b + a] = a + b;
                     edge_weights[b + a] = Number(link.type);
                 }
             } else {
                 algo_edges.add(a+b);
-                edge_ids[a + b] = a + "->" + b;
+                edge_ids[a + b] = a + b;
                 edge_weights[a + b] = Number(link.type);
             }
 
@@ -146,8 +162,9 @@ function setup(name, directed) {
         });
 
         var w = 800,
-            h = 500;
+            h = 600;
 
+        //init the force layout
         force = d3.layout.force()
             .nodes(d3.values(nodes))
             .links(links)
@@ -159,10 +176,14 @@ function setup(name, directed) {
             .on("tick", tick)
             .start();
 
+        //append the svg element. this is where stuff gets drawn
         var svg = d3.select("div.graph").append("svg:svg")
             .attr("width", w)
             .attr("height", h)
-            .style("background" ,"#FFFFFF");
+            .style("background" , CUR_BACKGROUND_COLOR)
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 600 600")
+            .attr("id", "svg-algo");
 
         //arrow size for directed graphs
         var marker_h = 5,
@@ -174,36 +195,41 @@ function setup(name, directed) {
             marker_w=0;
         }
 
+        var X_OFFSET = 120,
+            Y_OFFSET = 30;
+
         // Pre-type markers, as they don't inherit styles.
         svg.append("svg:defs").selectAll("marker")
             .data(force.links())
           .enter().append("svg:marker")
             .attr("id", function(d) { 
-                            return d.source.name + "->" + d.target.name + "$";
+                            return d.source.name + d.target.name + "w";
                         })
             .attr("viewBox", "0 -5 10 10")
-            .attr("refX", 20)
+            .attr("refX", START_MARKER_REFX)
             .attr("refY", 0)
             .attr("markerWidth", marker_w)
             .attr("markerHeight", marker_h)
             .attr("orient", "auto")
           .append("svg:path")
             .attr("id", function(d) {
-                            return d.source.name + "->" + d.target.name + "c";
+                            return d.source.name + d.target.name + "c";
                         })
             .attr("d", "M0,-5L10,0L0,5")
             .style("fill", START_EDGE_COLOR)
-            .attr("prev_color", START_EDGE_COLOR);
+            .attr("cur_color", START_EDGE_COLOR);
 
         //build paths (edges)
         var path = svg.append("svg:g").selectAll("path")
             .data(force.links())
           .enter().append("svg:path")
-            .attr("class", function(d) { return "link " + d.type; })
-            .attr("id", function(d) { return d.source.name + "->" + d.target.name; })
-            .attr("marker-end", function(d) { return "url(#" + d.source.name + "->" + d.target.name + "$" + ")"; })
+            .attr("class",  "link")
+            .attr("id", function(d) { return d.source.name + d.target.name; })
+            .attr("marker-end", function(d) { return "url(#" + d.source.name + d.target.name + "w" + ")"; })
             .style("stroke", START_EDGE_COLOR)
-            .attr("prev_color", START_EDGE_COLOR);
+            .style("stroke-width", START_EDGE_STROKE_WIDTH)
+            .style("fill", "none")
+            .attr("cur_color", START_EDGE_COLOR);
 
         //append edge labels to paths
         var linktext = svg.append("svg:g").selectAll("g.linklabelholder")
@@ -212,24 +238,25 @@ function setup(name, directed) {
              .append("text")
              .attr("class", "linklabel")
              .style("font-size", "18px")
+             .style("fill", CUR_TEXT_COLOR)
              .attr("x", "60")
              .attr("y", "100")
              .attr("text-anchor", "start")
-             .style("fill","#000")
              .append("textPath")
-             .attr("xlink:href",function(d) { return "#" + d.source.name + "->" + d.target.name; })
-             .text(function(d) { 
-             return d.type; 
-             });
+             .attr("xlink:href",function(d) { return "#" + d.source.name + d.target.name; })
+             .text( function(d) { 
+                        return d.type; 
+                    });
         
         //build svg circles for nodes
         var circle = svg.append("svg:g").selectAll("circle")
             .data(force.nodes())
            .enter().append("svg:circle")
-            .attr("r", 20)
+            .attr("r", START_NODE_RADIUS)
+            .attr("class", "node")
             .attr("id", function(d) {return d.name})
             .style("fill", START_NODE_COLOR)
-            .attr("prev_color", START_NODE_COLOR)
+            .attr("cur_color", START_NODE_COLOR)
             .call(force.drag);
 
         //initialzie text to be appended to the circles
@@ -239,33 +266,41 @@ function setup(name, directed) {
 
         //append node names to svg circles
         text.append("svg:text")
-            .attr("x", "-.5em")
+            .attr("x", "-1em")
             .attr("y", ".31em")
-             .style("font-size", "15px")
+            .style("font-size", "15px")
+            .style("fill", CUR_TEXT_COLOR)
             .text(function(d) { return d.name; })
-            .attr("id", function(d) {return "node_text:" + d.name});
+            .attr("class", "node-text")
+            .attr("id", function(d) {return "node_text-" + d.name});
+
+        //run specialized setup procedures if necessary
+        switch(cur_algorithm) {
+            case 2: setup_Dijkstra(); break;
+        }
 
         // A graph exists so we can run algorithms
         isSetup = true;
-        if (run_next) {
-            run_next = false;
+        if (runNext) {
+            runNext = false;
             run();
         }
 
         function tick() {
+
           path.attr("d", function(d) {
-            var dx = d.target.x - d.source.x,
-                dy = d.target.y - d.source.y,
-                dr = 75/d.linknum;  //linknum is defined above
-            return "M" + d.source.x + "," + d.source.y + "L" + d.target.x + "," + d.target.y;
+            // var dx = d.target.x - d.source.x,
+            //     dy = d.target.y - d.source.y,
+            //     dr = 75/d.linknum;  //linknum is defined above
+            return "M" + String(d.source.x - X_OFFSET) + "," + String(d.source.y - Y_OFFSET) + "L" + String(d.target.x - X_OFFSET) + "," + String(d.target.y - Y_OFFSET);
           });
 
           circle.attr("transform", function(d) {
-            return "translate(" + d.x + "," + d.y + ")";
+            return "translate(" + String(d.x - X_OFFSET) + "," + String(d.y - Y_OFFSET) + ")";
           });
 
           text.attr("transform", function(d) {
-            return "translate(" + d.x + "," + d.y + ")";
+            return "translate(" + String(d.x - X_OFFSET) + "," + String(d.y - Y_OFFSET) + ")";
           });
            
          
@@ -275,16 +310,41 @@ function setup(name, directed) {
 };
 
 /**
+ * Sets up the binary heap and dist values for Dijkstra's algorithm.
+ */
+function setup_Dijkstra(algo_num, direction) {
+
+    //Set up Heap display and color nodes to initial state
+    dist = {};
+    algo_nodes.forEach(function(node) {
+        colorNode(node, ON_HEAP_COLOR);
+        setDistance(node, MAX_NUM);
+    });
+
+    //set start node dist to 0
+    setDistance(START_NODE, 0);
+
+    //Initialize heap
+    var H = new Heap(dist);
+    //color start node green
+    colorNode(H.peek(), SHORTEST_TREE_COLOR);
+
+    //Initialize heap display
+    DATA_NAME = "dist";
+    setup_tree(H.h, dist, "Binary Heap");
+}
+
+/**
  * Attmept to run the currently selected algorithm
  */
 function run() {
 
     //clear any currently running events
-    clear_events();
+    clearEvents();
 
     //check if a graph has been built yet
     if (!isSetup) {
-        run_next = true;
+        runNext = true;
         setup(cur_algorithm, isDirected);
     } else {
 
@@ -337,8 +397,9 @@ function get_weight(node_id, descend_id) {
  * run MST on a directed graph
  */
 function MST_error() {
-    var x = document.getElementById("error");
-    x.innerHTML = algorithms[cur_algorithm] + "'s is only defined for Un-Directed graphs! As are all MST algorithms.";
-    x.className = "alert alert-danger"
+    var error_msg = algorithms[cur_algorithm] + "'s is only defined for Un-Directed graphs! As are all MST algorithms.";
+    d3.select("#error")
+        .html(error_msg)
+        .attr("class", "alert alert-danger");
     return "";
 };

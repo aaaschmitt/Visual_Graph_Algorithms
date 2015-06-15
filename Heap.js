@@ -16,6 +16,12 @@ function Heap(dict) {
 	this.makeHeap();
 }
 
+/**
+ * Peak at the top element without removing it.
+ */
+Heap.prototype.peek = function () {
+	return this.h[0];
+}
 
 /**
  * Builds a new heap

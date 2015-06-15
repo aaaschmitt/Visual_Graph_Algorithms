@@ -2,10 +2,10 @@
 
 //Set of visited nodes also used by BFS
 var visited = new Set(),
-	post_visited_color = "#33CC33"
-	next_color = "#FF0000"
+	POST_VISITED_COLOR = "#33CC33"
+	NEXT_COLOR = "#FF0000"
 	clock = 0
-	pre_nums = {};
+	preNums = {};
 
 /** 
  * Runs until all nodes have been visited.
@@ -15,21 +15,26 @@ var visited = new Set(),
 function DFS() {
 	visited = new Set();
 	clock = 0;
-	flash_time = 0;
-	pre_nums = {};
+	FLASH_TIME = 0;
+	preNums = {};
 
 
-	var node_array = [];
+	var nodeArray = [];
 	algo_nodes.forEach(function(node) {
-		node_array.push(node);
+		nodeArray.push(node);
 	});
 
-	node_array.sort();
+	nodeArray.sort();
 
-	node_array.forEach(function(node) {
+	//put START_NODE as first element
+	var index = nodeArray.indexOf(START_NODE);
+	nodeArray.splice(index, 1);
+	nodeArray.unshift(START_NODE);
+
+	nodeArray.forEach(function(node) {
 		if (!visited.has(node)) {
 			visited.add(node);
-			flash_color(node, post_visited_color, false, true, true);
+			flashColorAndResizeNode(node, POST_VISITED_COLOR, true, true);
 			explore(nodes[node]);
 		}
 	});
@@ -62,10 +67,10 @@ function explore(node) {
  * previsited and also updates its previsit number
  */
 function previsit(id) {
-	pre_nums[id] = clock;
-	flash_time += flash_int;
-	color(id, next_color, false);
-	change_node_text(id, id+"["+clock, true);
+	preNums[id] = clock;
+	FLASH_TIME += FLASH_INT;
+	colorNode(id, NEXT_COLOR);
+	changeNodeText(id, id+"["+clock, true);
 	clock += 1;
 };
 
@@ -75,10 +80,10 @@ function previsit(id) {
  */
 function visit(node_id, descend_id) {
 	var edge_id = get_edge_id(node_id, descend_id)
-	flash_color(edge_id, next_color, true, false, false);
-	flash_color(descend_id, next_color, false, true, false);
-	flash_time += flash_int;
-	color(edge_id, post_visited_color, true);
+	flashColorAndResizeEdge(edge_id, NEXT_COLOR, false, false);
+	flashColorAndResizeNode(descend_id, NEXT_COLOR, true, false);
+	FLASH_TIME += FLASH_INT;
+	colorEdge(edge_id, POST_VISITED_COLOR);
 }
 
 /**
@@ -86,7 +91,7 @@ function visit(node_id, descend_id) {
  * also colors the node green
  */
 function postvisit(id) {
-	change_node_text(id, id + "[" + pre_nums[id] + "," + clock + "]", true);
-	color(id, post_visited_color, false);
+	changeNodeText(id, id + "[" + preNums[id] + "," + clock + "]", true);
+	colorNode(id, POST_VISITED_COLOR);
 	clock += 1;
 };

@@ -1,22 +1,29 @@
 /* BFS traversal of the d3 force directed graph */
-var previsit_color = "#990099";
+var PREVISIT_COLOR = "#990099";
 
 function BFS() {
 	visited = new Set();
 	clock = 0;
-	flash_time = 0;
-	pre_nums = {};
+	FLASH_TIME = 0;
+	preNums = {};
 	Q = [];
 
 
-	var node_array = [];
+	var nodeArray = [];
 	algo_nodes.forEach(function(node) {
-		node_array.push(node);
+		nodeArray.push(node);
 	});
 
-	node_array.sort();
+	
+	nodeArray.sort();
+	
+	//put START_NODE as first element
+	var index = nodeArray.indexOf(START_NODE);
+	nodeArray.splice(index, 1);
+	nodeArray.unshift(START_NODE);
 
-	node_array.forEach(function(node) {
+
+	nodeArray.forEach(function(node) {
 		if (!visited.has(node)) {
 			Q.push(node);
 			visited.add(node)
@@ -46,10 +53,10 @@ function BFS() {
  * updates its previsit number
  */
 function BFS_previsit(id) {
-	pre_nums[id] = clock;
-	flash_time += flash_int;
-	color(id, previsit_color, false);
-	change_node_text(id, id+"["+clock, true);
+	preNums[id] = clock;
+	FLASH_TIME += FLASH_INT;
+	colorNode(id, PREVISIT_COLOR);
+	changeNodeText(id, id+"["+clock, true);
 	clock += 1;
 };
 
@@ -59,10 +66,10 @@ function BFS_previsit(id) {
  */
 function BFS_visit(node_id, descend_id) {
 	var edge_id = get_edge_id(node_id, descend_id)
-	flash_color(edge_id, next_color, true, false, false);
-	flash_color(descend_id, next_color, false, true, true);
-	flash_time += flash_int;
-	color(edge_id, post_visited_color, true);
+	flashColorAndResizeEdge(edge_id, NEXT_COLOR, false, false);
+	flashColorAndResizeNode(descend_id, NEXT_COLOR, true, true);
+	FLASH_TIME += FLASH_INT;
+	colorEdge(edge_id, POST_VISITED_COLOR);
 }
 
 /**
@@ -70,7 +77,7 @@ function BFS_visit(node_id, descend_id) {
  * also changes the nodes color to green
  */
 function BFS_postvisit(id) {
-	change_node_text(id, id + "[" + pre_nums[id] + "," + clock + "]", true);
-	color(id, post_visited_color, false);
+	changeNodeText(id, id + "[" + preNums[id] + "," + clock + "]", true);
+	colorNode(id, POST_VISITED_COLOR);
 	clock += 1;
 };

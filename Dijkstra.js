@@ -2,11 +2,8 @@
 
 //global values
 var dist = {},
-	prev = {},
-	shortest_path_tree = new Set(),
-	INFINITY_TEXT = "&#8734"
-	MAX_NUM = Number.MAX_VALUE,
-	start_node = 'A';
+	INFINITY_TEXT = "∞",
+	MAX_NUM = Number.MAX_VALUE;
 
 //colors for visualization
 var ON_HEAP_COLOR = "#FF0000",
@@ -15,27 +12,32 @@ var ON_HEAP_COLOR = "#FF0000",
 	UNUSED_COLOR = "#E6E6E6";
 
 function Dijkstra() {
-	flash_time = 0;
+	FLASH_TIME = 0;
 	dist = {};
-	prev = {};
-	shortest_path_tree = new Set();
+	
+	var prev = {},
+		shortestPathTree = new Set();
 
-	//create a dict of nodes with dist
-	//values initialized to infinity
-	//and a dict of previous values initialized to NULL
+	//all nodes have dist=∞ and prev=null
 	algo_nodes.forEach(function(node) {
-		color(node, ON_HEAP_COLOR, false);
+		colorNode(node, ON_HEAP_COLOR);
 		setDistance(node, MAX_NUM);
 		prev[node] = null;
 	});
-	flash_time += flash_int;
+	FLASH_TIME += FLASH_INT;
 
 	//set start node dist to 0
-	setDistance(start_node, 0);
-	flash_time += flash_int;
+	setDistance(START_NODE, 0);
+	FLASH_TIME += FLASH_INT;
 
 	//Initialize heap
 	var H = new Heap(dist);
+	//color start node green
+	colorNode(H.peek(), SHORTEST_TREE_COLOR);
+
+	//Initialize heap display
+	DATA_NAME = "dist";
+	setup_tree(H.h, dist, "Binary Heap");
 
 	while (H.size() > 0) {
 
@@ -46,66 +48,79 @@ function Dijkstra() {
 		var prev_node = prev[node_id];
 		if (prev_node != null) {
 			prev_edge_id = get_edge_id(prev_node, node_id);
-			shortest_path_tree.add(prev_edge_id);
-			color(prev_edge_id, SHORTEST_TREE_COLOR, true);
+			shortestPathTree.add(prev_edge_id);
+			colorEdge(prev_edge_id, SHORTEST_TREE_COLOR);
 		}
 
-		//If the min node that we pop off has a dist 
-		//of infinity then we are done 
-		//(all remaining nodes have dists of infinity and must be unreachable from the starting node)
+		//If the min node that we pop off has a dist of infinity then we are done
 		if (dist[node_id] == MAX_NUM) {
 			break;
 		}
 
-		//flash this node as being off the heap and color it as such
-		flash_color(node_id, SHORTEST_TREE_COLOR, false, true, true);
+		//flash this node as being off the heap and update tree
+		flashColorAndResizeNode(node_id, SHORTEST_TREE_COLOR, false, true);
+		flashColorAndResizeTreeNode(node_id, SHORTEST_TREE_COLOR, true, false);
+		update_tree(H.h, dist, node_id, SHORTEST_TREE_COLOR);
+
 		cur_node = nodes[node_id];
 
-		//iterate over outgoing edges and update dist values
 		cur_node.adjacent.forEach(function(descend) {
 
-			//get descendant id and edge_id
 			descend_id = descend.node.name;
+			edge_id = get_edge_id(node_id, descend_id)
+			weight = get_weight(node_id, descend_id);
 
-			//only update things that are in the heap
+			//only color things that are in the heap
 			if (H.contains(descend_id)) {
 
-				//get edge weight
-				edge_id = get_edge_id(node_id, descend_id)
-				weight = get_weight(node_id, descend_id);
+				//show that this node is still on the heap
+				flashColorAndResizeDescendantNodeAndEdge(descend_id, edge_id, ON_HEAP_COLOR, true);
+			
+				//get dist values
+				curDist = dist[descend_id];
+				newDist = dist[node_id] + weight;
 
-				//color the edge and the node being visited
-				flash_color(descend_id, UPDATE_COLOR, false, false, false);
-				flash_color(edge_id, UPDATE_COLOR, true, true, false);
+				//check node dist
+				if (curDist > newDist) {
+					setDistance(descend_id, newDist);
+					prev[descend_id] = node_id;
+					H.decreaseKey(descend_id);
 
-				//color the node red since it is still on the heap
-				color(descend_id, ON_HEAP_COLOR, false);
+					//show that the value of this node has been updated
+					update_tree(H.h, dist, descend_id, UPDATE_COLOR);
+					flashColorAndResizeDescendantNodeAndEdge(descend_id, edge_id, UPDATE_COLOR, true);
+				}
 
 				//color edge as as near-white to distinguish from nodes 
 				//later on that will form the shortest paths tree
-				color(edge_id, UNUSED_COLOR, true);
-
-				//get dist values
-				cur_dist = dist[descend_id];
-				new_dist = dist[node_id] + weight;
-
-				//check node dist
-				if (cur_dist > new_dist) {
-					setDistance(descend_id, new_dist);
-					prev[descend_id] = node_id;
-					H.decreaseKey(descend_id);
-				}
+				colorEdge(edge_id, UNUSED_COLOR);
 			}
 		})
 	}
 
-	//ensure that all edges that are not in the 
-	//shortest path tree are colored near-white
+	// ensure that all edges that are not in the 
+	// shortest path tree are colored near-white
 	for (id in edge_ids) {
-		if (!shortest_path_tree.has(edge_ids[id])) {
-			color(edge_ids[id], UNUSED_COLOR, true);
+		if (!shortestPathTree.has(edge_ids[id])) {
+			colorEdge(edge_ids[id], UNUSED_COLOR);
 		}
 	}
+}
+
+/** 
+ * Flash Colors/Resizes a descendant node and the edge leading to it. 
+ * Also colors the corresponding node in the heap display tree.
+ * All events are simultaneous.
+ * @params
+ * node - node to be colored
+ * edge - edge to be coored
+ * color - color to flash to
+ * incr - true iff the clock should be incremented after ALL 3  events have occured
+ */
+function flashColorAndResizeDescendantNodeAndEdge(node, edge, color, incr) {
+	flashColorAndResizeNode(node, color, false, false);
+	flashColorAndResizeEdge(edge, color, false, false);
+	flashColorAndResizeTreeNode(node, color, incr, false);
 }
 
 /** 
@@ -124,5 +139,5 @@ function setDistance(node_id, distance) {
  * change a node's text to reflect its distance
  */
 function setDistanceText(node_id, dist) {
-	change_node_text(node_id, node_id + "=" + dist, false);
+	changeNodeText(node_id, node_id + "=" + dist, false);
 }

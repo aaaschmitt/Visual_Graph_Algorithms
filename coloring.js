@@ -1,86 +1,266 @@
-/* Utility for coloring nodes and edges. */
+/* Utility for coloring nodes and edges and writing text to elements. */
 
-var flash_time = 0;
-var flash_int = 200;
-var timeout_ids = [];
+//timing controls
+var FLASH_TIME = 0,
+	FLASH_INT = 200,
+	TIMEOUT_IDS = [],
+	NUM_FLASHES = 3;
+
+//Shape transition sizes
+var NEW_NODE_RADIUS = 25,
+	NEW_EDGE_STROKE_WIDTH = "5px",
+	NEW_MARKER_REFX = 30,
+	NEW_TREE_NODE_HEIGHT = 50
+	NEW_TREE_NODE_WIDTH = 65;
+
+
+
+/****************
+ * NODE EFFECTS *
+ ****************/
 
 /**
- * Flashes the color of a node or edge:
+ * Flashes the size and color of a node.
  *
  * @params
- * id - name of node
+ * id - id of node
  * color - color to flash to
- * isEdge - boolean dentoting whether the object is an edge
  * incr - boolean indicating whether to increment the event clock (allows for synchronous events)
  * change - determines whether to change the node color
  */
-function flash_color(id, new_color, isEdge, incr, change) {
-	var color_flash = new_color,
-		start_color = "",
-		num_flashes = 3;
-		element = document.getElementById(id);
-	if (isEdge) {
-		start_color = window.getComputedStyle(element, null).getPropertyValue("stroke");
-	} else {
-		start_color = window.getComputedStyle(element, null).getPropertyValue("fill");
+function flashColorAndResizeNode(id, newColor, incr, change) {
+	var startColor = d3.select("#" + id).attr("cur_color");
+
+	var temp_FLASH_TIME = FLASH_TIME;
+
+	//flash colors
+	for (i=0; i<NUM_FLASHES; i++) {
+		FLASH_TIME += FLASH_INT;
+		colorAndResizeNode(id, newColor, START_NODE_RADIUS, NEW_MARKER_REFX);
+		FLASH_TIME += FLASH_INT;
+		colorAndResizeNode(id, startColor, NEW_NODE_RADIUS, START_MARKER_REFX);
 	}
 
-	var temp_flash_time = flash_time;
-
-	for (i=0; i<num_flashes; i++) {
-		flash_time += flash_int;
-		color(id, color_flash, isEdge);
-		flash_time += flash_int;
-		color(id, start_color, isEdge);
-	}
 	//change color to new value if set
-	if(change) {
-		flash_time += flash_int;
-		color(id, color_flash, isEdge);
+	if (change) {
+		FLASH_TIME += FLASH_INT;
+		colorNode(id, newColor);
 	}
-	//restore flash_time to starting value so we can have synchronous events if set
+	//restore FLASH_TIME to starting value so we can have synchronous events
 	if (!incr) {
-		flash_time = temp_flash_time;
+		FLASH_TIME = temp_FLASH_TIME;
 	}
 }
 
+/**
+ * Colors a node using a smooth d3 transition.
+ * Updates the node's cur_color attribute to reflect color change.
+ */
+function colorNode(id, color) {
+	TIMEOUT_IDS.push(setTimeout(function () {
+			d3.select("#" + id)
+				.transition()
+				 .style("fill", color)
+				 .duration(FLASH_INT);
+		}, FLASH_TIME));
+	d3.select("#" + id).attr("cur_color", color);
+}
 
 /**
- * Colors a node or edge in graph based on whether it is up next, 
- * it has aleady been visited, or the value it starts as
- * visited - green - #33CC33
- * next - red - #FF0000
- * start - whatever start color is set to
+ * Colors a node and also changes its radius
+ * using a smooth d3 transition.
  */
-function color(id, color, isEdge) {
-	var attr = "";
-	if (isEdge) {
-		timeout_ids.push ( setTimeout(function() { document.getElementById(id).setAttribute("style", "stroke: " + color); }, flash_time) );
-		timeout_ids.push ( setTimeout(function() { document.getElementById(id + "c").setAttribute("style", "fill: " + color); }, flash_time) );
-	} else {
-		attr = "fill : ";
-		timeout_ids.push ( setTimeout(function() { document.getElementById(id).setAttribute("style", "fill: " + color); }, flash_time) );
-	}
+function colorAndResizeNode(id, color, newRadius) {
+	TIMEOUT_IDS.push(setTimeout(function () {
+			d3.select("#" + id)
+				.transition()
+				 .style("fill", color)
+				 .attr("r", newRadius)
+				 .duration(FLASH_INT);
+		}, FLASH_TIME));
+	d3.select("#" + id).attr("cur_color", color);
 }
 
 /**
  * Changes a node's text. 
- * If INCR is false do not change the clock
+ * Increment FLASH_TIME iff incr is true. 
  */
-function change_node_text(id, text, incr) {
+function changeNodeText(id, text, incr) {
 	if (incr) {
-		flash_time += 3 * flash_int;
+		FLASH_TIME += 2 * FLASH_INT;
 	}
-	timeout_ids.push( setTimeout(function() { document.getElementById("node_text:" + id).innerHTML = text; }, flash_time) );
+	TIMEOUT_IDS.push( setTimeout(function() { d3.select("#node_text-" + id).html(text); }, FLASH_TIME) );
+}
+
+/****************
+ * EDGE EFFECTS *
+ ****************/
+
+/**
+ * Flashes the size and color of an edge.
+ *
+ * @params
+ * id - id of edge
+ * color - color to flash to
+ * incr - boolean indicating whether to increment the event clock (allows for synchronous events)
+ * change - determines whether to change the edge color at the end of flashing
+ */
+function flashColorAndResizeEdge(id, newColor, incr, change) {
+	var startColor = d3.select("#" + id).attr("cur_color");
+
+	var temp_FLASH_TIME = FLASH_TIME;
+
+	//flash colors
+	for (i=0; i<NUM_FLASHES; i++) {
+		FLASH_TIME += FLASH_INT;
+		colorAndResizeEdge(id, newColor, NEW_EDGE_STROKE_WIDTH);
+		FLASH_TIME += FLASH_INT;
+		colorAndResizeEdge(id, startColor, START_EDGE_STROKE_WIDTH);
+	}
+
+	//change color to new value if set
+	if (change) {
+		FLASH_TIME += FLASH_INT;
+		colorEdge(id, newColor);
+	}
+	//restore FLASH_TIME to starting value so we can have synchronous events
+	if (!incr) {
+		FLASH_TIME = temp_FLASH_TIME;
+	}
 }
 
 /**
- * Clears all currently running timeout events
- * and restes the timeout_ids array
+ * Colors an edge in d3 force graph using a smooth d3 transition.
+ * Updates the edge's cur_color attribute to reflect color change.
  */
-function clear_events() {
-	for (i=0; i<timeout_ids.length; i++) {
-		clearTimeout(timeout_ids[i]);
+function colorEdge(id, color) {
+	TIMEOUT_IDS.push(setTimeout(function () {
+		d3.select("#" + id)
+			.transition()
+			 .style("stroke", color)
+			 .duration(FLASH_INT);
+		d3.select("#" + id + "c")
+			.transition("#" + id + "c")
+			 .style("fill", color)
+			 .duration(FLASH_INT);
+	}, FLASH_TIME));
+	d3.select("#" + id).attr("cur_color", color);
+}
+
+/**
+ * Colors an edge and it's pointer. Also changes the stroke-width
+ * of the edge and pointer (necesitating a shift in the refX for the pointer).
+ */
+function colorAndResizeEdge(id, color, strokeWidth, markerRefX) {
+	TIMEOUT_IDS.push(setTimeout(function () {
+		d3.select("#" + id)
+			.transition()
+			 .style("stroke", color)
+			 .style("stroke-width", strokeWidth)
+			 .duration(FLASH_INT);
+		d3.select("#" + id + "c")
+			.transition("#" + id + "c")
+			 .style("stoke-widith", strokeWidth)
+			 .style("fill", color)
+			 .attr("refX", markerRefX)
+			 .duration(FLASH_INT);
+	}, FLASH_TIME));
+	d3.select("#" + id).attr("cur_color", color);
+}
+
+/****************
+ * TREE EFFECTS *
+ ****************/
+
+/**
+ * Flashes the size and color of a treeNode.
+ *
+ * @params
+ * id - id of node (this function prepends 'treeNode' to the front)
+ * color - color to flash to
+ * incr - boolean indicating whether to increment the event clock (allows for synchronous events)
+ * change - determines whether to change the node color
+ */
+function flashColorAndResizeTreeNode (id, newColor, incr, change) {
+	var treeId = "treeNode" + id,
+		startColor = d3.select("#" + treeId).attr("cur_color");
+
+	var temp_FLASH_TIME = FLASH_TIME;
+
+	for (i=0; i<NUM_FLASHES; i++) {
+		FLASH_TIME += FLASH_INT+1;
+		colorAndResizeTreeNode (treeId, newColor, NEW_TREE_NODE_WIDTH, NEW_TREE_NODE_HEIGHT);
+		FLASH_TIME += FLASH_INT+1;
+		colorAndResizeTreeNode (treeId, startColor, START_TREE_NODE_WIDTH, START_TREE_NODE_HEIGHT);
 	}
-	timeout_ids	= [];
+
+	//change color to new value if set
+	if (change) {
+		FLASH_TIME += FLASH_INT+1;
+		colorNode(treeId, newColor);
+	}
+	//restore FLASH_TIME to starting value so we can have synchronous events
+	if (!incr) {
+		FLASH_TIME = temp_FLASH_TIME;
+	}
+}
+
+/**
+ * Colors a rectangular node and also changes its width and height
+ * using a smooth d3 transition.
+ */
+function colorAndResizeTreeNode (treeId, color, width, height) {
+	TIMEOUT_IDS.push(setTimeout( function () {
+			d3.select("#" + treeId)
+				.transition()
+				 .style("fill", color)
+				 .attr("width", width)
+				 .attr("height", height)
+				 .duration(FLASH_INT);
+		}, FLASH_TIME));
+	d3.select("#" + treeId).attr("cur_color", color);
+}
+
+/*****************
+ * DISPLAY UTILS *
+ *****************/
+
+/**
+ * Clears all currently running timeout events
+ * and resets the TIMEOUT_IDS array
+ */
+function clearEvents() {
+	for (i=0; i<TIMEOUT_IDS.length; i++) {
+		clearTimeout(TIMEOUT_IDS[i]);
+	}
+	TIMEOUT_IDS	= [];
+}
+
+/**
+ * Flash a message on the screen. 
+ *
+ * @params
+ * s - message string
+ * alertStart - bootstrap alert color to flash first
+ * alertEnd - bootstrap alert color that flash will end on (final state)
+ */
+function flash_info(s, alertStart, alertEnd) {
+	var x = d3.select("#error");
+	for (var j = 0; j < 4; j++) {
+			FLASH_TIME += FLASH_INT/1.5;
+			TIMEOUT_IDS.push( setTimeout( function() {
+					  						x.attr("class", "alert alert-" + alertStart); 
+								 			x.html ("<h3>" + s + "<h3>");
+								 		  }, 
+										FLASH_TIME)
+							);
+
+			FLASH_TIME += FLASH_INT/1.5;
+			TIMEOUT_IDS.push( setTimeout( function() {
+					  						x.attr("class", "alert alert-" + alertEnd); 
+								 			x.html("<h3>" + s + "<h3>");
+								 		  }, 
+										FLASH_TIME)
+							);
+		}
 }
