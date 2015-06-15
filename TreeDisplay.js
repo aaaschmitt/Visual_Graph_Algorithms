@@ -3,27 +3,39 @@
 var tree = "",
 	treeExists = false,
 	isChanged = false,
-	tree_nodes = {},
 	DATA_NAME = "",
-	tree_title="";
+	tree_title="",
+	treeSvg;
 
 var BORDER_COLOR = "#000000",
 	START_TREE_NODE_COLOR = "#0066FF",
 	START_TREE_NODE_WIDTH = 50,
 	START_TREE_NODE_HEIGHT = 35;
 
+var WIDTH = 600,
+	HEIGHT = 600,
+	Y_OFFSET = -15;
+
+//A diagonal projection to draw links
+var diagonal = d3.svg.diagonal()
+  .projection(function(d) { return [d.x, d.y-Y_OFFSET]; });
+
+
 /**
  * Displays a new tree structure.
  * 
  * @params
- * data_vals - a dictionary mapping data names to their values
+ * dataVals - a dictionary mapping data names to their values
  * nodes_names - array of names of nodes. Is formated such that the children of a node
  * 		 		 are at locations left = (2*i+1) and right = (2*i+2)
  */
-function setup_tree(node_names, data_vals, title) {
+function setupTree(nodeNames, dataVals, title) {
 
 	tree_title = title;
-	var num_nodes = node_names.length;
+	
+	if (nodeNames.length == 0) {
+		return;
+	}
 
 	//clear previous tree and write title
 	d3.select("#data-struct-title")
@@ -32,106 +44,72 @@ function setup_tree(node_names, data_vals, title) {
 	d3.select(".data-struct")
     	.html("");
 
-    if (num_nodes == 0) {
-		return;
-	}
+	var rootName = nodeNames[0];
 
 	//Compute nodes and set up children arrays
-	tree_nodes = {};
-
-	var root_name = node_names[0];
-
-	tree_nodes[root_name] = {name: root_name, parent: null, val: data_vals[root_name]};
-
-	for (var i = 0; i < num_nodes; i++) {
-
-		//get names of node and children
-		var cur_node = tree_nodes[node_names[i]],
-		left_child_name = (2*i+1 < num_nodes) ? node_names[2*i+1] : null,
-		right_child_name = (2*i+2 < num_nodes) ? node_names[2*i+2] : null;
-
-		//index is used to sort children
-		cur_node.index = i;
-
-		//make children array
-		cur_node.children = [];
-		if (left_child_name) {
-			var left_child = {name: left_child_name, parent: cur_node, val: data_vals[left_child_name]};
-			tree_nodes[left_child_name] = left_child;
-			cur_node.children.push(left_child);
-		}
-		if (right_child_name) {
-			var right_child = {name: right_child_name, parent: cur_node, val: data_vals[right_child_name]};
-			tree_nodes[right_child_name] = right_child;
-			cur_node.children.push(right_child);
-		}
-	}
-
-	
-	var width = 600,
-		height = 600,
-		Y_OFFSET = -15;
-	
+	var treeNodes = computeNodes(rootName, nodeNames, dataVals);
+		
 	//the root of the tree
-	var root = tree_nodes[root_name];
+	var root = treeNodes[rootName];
 
-	//initialize the cluster layout
+	//initialize the tree layout
 	tree = d3.layout.tree()
-			.size([height-80, width-180]);
+			.size([HEIGHT-80, WIDTH-180]);
 	
 	//initialize nodes, links and comparator function
 	var nodes = tree.nodes(root);
 	var links = tree.links(nodes);
 	tree.sort(compByIndex);
+	nodes.sort(function(a,b) { return d3.ascending(a.name, b.name); });
+	links.sort(function(a,b) { return d3.ascending(a.source.name, b.source.name); });
 
 	//append the svg element. this is where stuff gets drawn
-	var svg = d3.select("div.data-struct").append("svg:svg")
-            .attr("width", width)
-            .attr("height", height)
+	treeSvg = d3.select("div.data-struct").append("svg:svg")
+            .attr("WIDTH", WIDTH)
+            .attr("HEIGHT", HEIGHT)
             .style("background" , CUR_BACKGROUND_COLOR)
             .attr("preserveAspectRatio", "xMinYMin meet")
             .attr("viewBox", "0 0 600 600")
             .attr("id", "svg-data-struct");
 
-    //A diagonal projection to draw links
-    var diagonal = d3.svg.diagonal()
-      .projection(function(d) { return [d.x, d.y-Y_OFFSET]; });
-
     //build paths (edges)
-    var path = svg.append("svg:g").selectAll("path")
-    			.data(links)
+    var path = treeSvg.append("svg:g").attr("class", "treeLinkContainer").selectAll("path")
+    			.data(links, function(d) { return d.source.name + "-" + d.target.name; })
     		.enter().append("svg:path")
     			.attr("d", diagonal)
     			.attr("class", "treeLink")
     			.style("stroke", START_EDGE_COLOR)
-    			.style("stroke-width", START_EDGE_STROKE_WIDTH)
+    			.style("stroke-WIDTH", START_EDGE_STROKE_WIDTH)
     			.style("fill", "none")
     			.attr("cur_color", START_EDGE_COLOR)
     			.attr("id", function(d) { return "treeLink" + d.source.name + d.target.name; });
 
-    var elms = svg.append("svg:g").selectAll("rect")
-    				.data(nodes)
+    //draw rectangular nodes
+    var elms = treeSvg.append("svg:g").attr("class", "treeNodeContainer").selectAll("rect")
+    				.data(nodes, function(d) { return d.name; })
     			.enter().append("svg:rect")
     				.attr("class", "tree_node")
        				.attr("transform", function(d) { 
-       									return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")"; 
-       								   })
+						return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")"; 
+					})
     				.attr("width", START_TREE_NODE_WIDTH)
     				.attr("height", START_TREE_NODE_HEIGHT)
     				.attr("x", -16)
     				.attr("y", -19)
     				.style("fill", START_TREE_NODE_COLOR)
     				.attr("cur_color", START_TREE_NODE_COLOR)
-    				.attr("id", function(d) { return "treeNode" + d.name; });
+    				.attr("id", function(d) { return "tree_node" + d.name; });
 
 
     //initialzie and position text to be appended to the circles
-    var text = svg.append("svg:g").selectAll("g")
-        .data(nodes)
+    var text = treeSvg.append("svg:g").selectAll("g")
+        .data(nodes, function(d) { return d.name; })
       .enter().append("svg:g")
+      	.attr("class", "treeNodeTextContainer")
       	.attr("transform", function(d) {
-            				return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")";
-						   });
+			return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")";
+		})
+      	.attr("id", function(d) { return "treeNodeTextContainer-" + d.name; });
 
     //append node names to svg circles
     text.append("svg:text")
@@ -150,15 +128,57 @@ function setup_tree(node_names, data_vals, title) {
         .style("font-size", "15px")
         .style("fill", CUR_TEXT_COLOR)
         .text(function(d) { 
-	        	var display_val = d.val;
-	        	if (d.val === MAX_NUM) {
-	        		display_val = INFINITY_TEXT;
-	        	}
-	        	return DATA_NAME + ": " + String(display_val); 
-        	 })
-        .attr("class", "tree-node-text")
+	    	var display_val = d.val;
+	    	if (d.val === MAX_NUM) {
+	    		display_val = INFINITY_TEXT;
+	    	}
+	    	return DATA_NAME + ": " + String(display_val); 
+		 })
+        .attr("class", "tree-node-data-text")
         .attr("id", function(d) {return "tree_node_data_text-" + d.name});
 
+}
+
+/**
+ * Return the nodes (setting up parents and children) for the tree.
+ *
+ * @params
+ * rootName - the name of the root node
+ * nodeNames - an array of the names of the nodes in heap order
+ * dataVals - an array of the data for each node indexed by each nodes name
+ */
+function computeNodes(rootName, nodeNames, dataVals) {
+
+	var treeNodes = {},
+		numNodes = nodeNames.length;
+
+	treeNodes[rootName] = {name: rootName, parent: null, val: dataVals[rootName]};
+
+	for (var i = 0; i < nodeNames.length; i++) {
+
+		//get names of node and children
+		var cur_node = treeNodes[nodeNames[i]],
+		left_child_name = (2*i+1 < numNodes) ? nodeNames[2*i+1] : null,
+		right_child_name = (2*i+2 < numNodes) ? nodeNames[2*i+2] : null;
+
+		//index is used to sort children
+		cur_node.index = i;
+
+		//make children array
+		cur_node.children = [];
+		if (left_child_name) {
+			var left_child = {name: left_child_name, parent: cur_node, val: dataVals[left_child_name]};
+			treeNodes[left_child_name] = left_child;
+			cur_node.children.push(left_child);
+		}
+		if (right_child_name) {
+			var right_child = {name: right_child_name, parent: cur_node, val: dataVals[right_child_name]};
+			treeNodes[right_child_name] = right_child;
+			cur_node.children.push(right_child);
+		}
+	}
+
+	return treeNodes;
 }
 
 /**
@@ -166,22 +186,25 @@ function setup_tree(node_names, data_vals, title) {
  *
  * @params
  * nodes_names - array of names of nodes. Is formated such that the children of a node
- * 		 		 are at locations left = (2*i+1) and right = (2*i+2)
- * data_vals - a dictionary mapping data entries to their values 
+ * 		 		 are at locations left = (2*i+s1) and right = (2*i+2)
+ * dataVals - a dictionary mapping data entries to their values 
  * node - the node that changed in the tree
  * color - the color to flash the changed node to
+ * deletedNode - the id of the node that was deleted from the heap
  */
-function update_tree(node_names, data_vals, node, color) {
+function updateTree(nodeNames, dataVals, deletedNode) {
+	console.log("tree update");
 	//need to make copies of the current state
 	var cur_names = [],
 		cur_vals = {},
 		temp;
-	for (var i = 0; i < node_names.length; i++) {
-		temp = node_names[i];
+	for (var i = 0; i < nodeNames.length; i++) {
+		temp = nodeNames[i];
 		cur_names.push(temp);
-		cur_vals[temp] = data_vals[temp];
+		cur_vals[temp] = dataVals[temp];
 	}
-	TIMEOUT_IDS.push(setTimeout( function() { tree_transition(cur_names, cur_vals) }, FLASH_TIME ));
+	FLASH_TIME += FLASH_INT;
+	TIMEOUT_IDS.push(setTimeout( function() { treeTransition(cur_names, cur_vals, deletedNode) }, FLASH_TIME ));
 }
 
 /**
@@ -190,10 +213,80 @@ function update_tree(node_names, data_vals, node, color) {
  * @params
  * nodes_names - array of names of nodes. Is formated such that the children of a node
  * 		 		 are at locations left = (2*i+1) and right = (2*i+2)
- * data_vals - a dictionary mapping data entries to their values
+ * dataVals - a dictionary mapping data entries to their values
  */
-function tree_transition(node_names, data_vals) {
-	setup_tree(node_names, data_vals, tree_title);
+function treeTransition(nodeNames, dataVals, deletedNode) {
+
+	var rootName = nodeNames[0];
+
+	newTreeNodes = computeNodes(rootName, nodeNames, dataVals);
+	
+	//the root of the tree
+	var root = newTreeNodes[rootName];
+
+	//initialize the new tree layout
+	tree = d3.layout.tree()
+			.size([HEIGHT-80, WIDTH-180]);
+	
+	//initialize nodes, links and comparator function
+	var nodes = tree.nodes(root);
+	var links = tree.links(nodes);
+	tree.sort(compByIndex);
+	nodes.sort(function(a,b) { return d3.ascending(a.name, b.name); });
+	links.sort(function(a,b) { return d3.ascending(a.source.name, b.source.name); });
+
+	//delete node and its text
+	if (deletedNode) {
+		var deletedNodeId = "tree_node" + deletedNode;
+
+		treeSvg.select("#" + deletedNodeId)
+			.transition()
+				.duration(FLASH_INT)
+				.attr("transform", "translate(" + 0 + ", " + WIDTH+40 + ")")
+				.remove();
+
+		treeSvg.select("#" + "treeNodeTextContainer-" + deletedNode)
+			.transition()
+				.duration(FLASH_INT)
+				.attr("transform", "translate(" + 0 + ", " + WIDTH+40 + ")")
+				.remove();
+	}
+
+	//move nodes to new positions
+	treeSvg.selectAll(".tree_node").filter(function() { 
+		return d3.select(this).attr("id") != deletedNodeId;
+	})
+		.data(nodes)
+		.transition()
+			.duration(FLASH_INT)
+			.attr("transform", function(d) { 
+				return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")"; 
+			   })
+
+	var text = treeSvg.selectAll(".treeNodeTextContainer").filter(function() {
+		return d3.select(this).attr("id") != "treeNodeTextContainer-" + deletedNode;
+	})
+		.data(nodes)
+		.transition()
+			.duration(FLASH_INT)
+	      	.attr("transform", function(d) {
+				return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")";
+			   });
+
+	//remove old paths and then add the new ones
+    var paths = treeSvg.selectAll(".treeLink")
+    		.remove();
+
+    var newPaths = treeSvg.select(".treeLinkContainer").selectAll("path")
+	    		.data(links)
+			.enter().append("svg:path")
+				.attr("d", diagonal)
+				.attr("class", "treeLink")
+				.style("stroke", START_EDGE_COLOR)
+				.style("stroke-WIDTH", START_EDGE_STROKE_WIDTH)
+				.style("fill", "none")
+				.attr("cur_color", START_EDGE_COLOR)
+				.attr("id", function(d) { return "treeLink" + d.source.name + d.target.name; });
 }
 
 /**

@@ -37,7 +37,7 @@ function Dijkstra() {
 
 	//Initialize heap display
 	DATA_NAME = "dist";
-	setup_tree(H.h, dist, "Binary Heap");
+	setupTree(H.h, dist, "Binary Heap");
 
 	while (H.size() > 0) {
 
@@ -60,7 +60,7 @@ function Dijkstra() {
 		//flash this node as being off the heap and update tree
 		flashColorAndResizeNode(node_id, SHORTEST_TREE_COLOR, false, true);
 		flashColorAndResizeTreeNode(node_id, SHORTEST_TREE_COLOR, true, false);
-		update_tree(H.h, dist, node_id, SHORTEST_TREE_COLOR);
+		updateTree(H.h, dist, node_id);
 
 		cur_node = nodes[node_id];
 
@@ -82,13 +82,16 @@ function Dijkstra() {
 
 				//check node dist
 				if (curDist > newDist) {
+
 					setDistance(descend_id, newDist);
+					setTreeNodeDataValue(descend_id, newDist);
+
 					prev[descend_id] = node_id;
 					H.decreaseKey(descend_id);
 
 					//show that the value of this node has been updated
-					update_tree(H.h, dist, descend_id, UPDATE_COLOR);
 					flashColorAndResizeDescendantNodeAndEdge(descend_id, edge_id, UPDATE_COLOR, true);
+					updateTree(H.h, dist, null);
 				}
 
 				//color edge as as near-white to distinguish from nodes 

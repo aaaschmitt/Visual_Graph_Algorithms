@@ -331,7 +331,7 @@ function setup_Dijkstra(algo_num, direction) {
 
     //Initialize heap display
     DATA_NAME = "dist";
-    setup_tree(H.h, dist, "Binary Heap");
+    setupTree(H.h, dist, "Binary Heap");
 }
 
 /**

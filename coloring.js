@@ -182,7 +182,7 @@ function colorAndResizeEdge(id, color, strokeWidth, markerRefX) {
  * change - determines whether to change the node color
  */
 function flashColorAndResizeTreeNode (id, newColor, incr, change) {
-	var treeId = "treeNode" + id,
+	var treeId = "tree_node" + id,
 		startColor = d3.select("#" + treeId).attr("cur_color");
 
 	var temp_FLASH_TIME = FLASH_TIME;
@@ -220,6 +220,15 @@ function colorAndResizeTreeNode (treeId, color, width, height) {
 		}, FLASH_TIME));
 	d3.select("#" + treeId).attr("cur_color", color);
 }
+
+/**
+ * Sets the text for a nodes data attribute to a new value.
+ */
+function setTreeNodeDataValue(treeNodeId, newValue) {
+	var text = DATA_NAME + ": " + String(newValue);
+	TIMEOUT_IDS.push(setTimeout(function() { d3.select("#tree_node_data_text-" + treeNodeId).html(text); }, FLASH_TIME));
+}
+
 
 /*****************
  * DISPLAY UTILS *
