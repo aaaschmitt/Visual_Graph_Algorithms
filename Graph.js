@@ -3,7 +3,9 @@ var cur_algorithm = 0,
     isDirected = false,
     isPositive = true,
     isSetup = false,
-    runNext = false;
+    runNext = false,
+    isPaused = false,
+    isRunning = false;
 
 //Nodes and Links
 var nodes = {},
@@ -352,6 +354,9 @@ function run() {
         for (var i = 0; i < 500; ++i) force.tick();
         force.stop();
 
+        isRunning = true;
+        isSetup = false;
+
         switch(cur_algorithm) {
             case 0: DFS(); break;
             case 1: BFS(); break;
@@ -362,8 +367,6 @@ function run() {
             default:
                 break;
         }
-
-        isSetup = false;
 
         return;
     }
