@@ -10,7 +10,8 @@ var tree = "",
 var BORDER_COLOR = "#000000",
 	START_TREE_NODE_COLOR = "#0066FF",
 	START_TREE_NODE_WIDTH = 50,
-	START_TREE_NODE_HEIGHT = 35;
+	START_TREE_NODE_HEIGHT = 35,
+	TREE_TRANSITION_TIME = 2 * FLASH_INT;
 
 var WIDTH = 600,
 	HEIGHT = 600,
@@ -188,8 +189,6 @@ function computeNodes(rootName, nodeNames, dataVals) {
  * nodes_names - array of names of nodes. Is formated such that the children of a node
  * 		 		 are at locations left = (2*i+s1) and right = (2*i+2)
  * dataVals - a dictionary mapping data entries to their values 
- * node - the node that changed in the tree
- * color - the color to flash the changed node to
  * deletedNode - the id of the node that was deleted from the heap
  */
 function updateTree(nodeNames, dataVals, deletedNode) {
@@ -203,8 +202,7 @@ function updateTree(nodeNames, dataVals, deletedNode) {
 		cur_names.push(temp);
 		cur_vals[temp] = dataVals[temp];
 	}
-	FLASH_TIME += FLASH_INT;
-	TIMEOUT_IDS.push(setTimeout( function() { treeTransition(cur_names, cur_vals, deletedNode) }, FLASH_TIME ));
+	treeTransition(cur_names, cur_vals, deletedNode)
 }
 
 /**
@@ -241,13 +239,13 @@ function treeTransition(nodeNames, dataVals, deletedNode) {
 
 		treeSvg.select("#" + deletedNodeId)
 			.transition()
-				.duration(FLASH_INT)
+				.duration(TREE_TRANSITION_TIME)
 				.attr("transform", "translate(" + 0 + ", " + WIDTH+40 + ")")
 				.remove();
 
 		treeSvg.select("#" + "treeNodeTextContainer-" + deletedNode)
 			.transition()
-				.duration(FLASH_INT)
+				.duration(TREE_TRANSITION_TIME)
 				.attr("transform", "translate(" + 0 + ", " + WIDTH+40 + ")")
 				.remove();
 	}
@@ -258,7 +256,7 @@ function treeTransition(nodeNames, dataVals, deletedNode) {
 	})
 		.data(nodes)
 		.transition()
-			.duration(FLASH_INT)
+			.duration(TREE_TRANSITION_TIME)
 			.attr("transform", function(d) { 
 				return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")"; 
 			   })
@@ -268,7 +266,7 @@ function treeTransition(nodeNames, dataVals, deletedNode) {
 	})
 		.data(nodes)
 		.transition()
-			.duration(FLASH_INT)
+			.duration(TREE_TRANSITION_TIME)
 	      	.attr("transform", function(d) {
 				return "translate(" + d.x + "," + String(d.y - Y_OFFSET) + ")";
 			   });

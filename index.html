@@ -11,17 +11,19 @@
 <script src="./support/d3/d3.min.js"></script>
 
 <!-- Launcher and utils -->
-<script src="./coloring.js"></script>
-<script src="./Graph.js"></script>
-<script src="./Heap.js"></script>
-<script src="./TreeDisplay.js"></script>
-<script src="./FileSaver.js"
+<script src="./src/Graph.js"></script>
+<script src="./src/utils/Heap.js"></script>
+
+<!-- Animations -->
+<script src="./src/animations/animation.js"></script>
+<script src="./src/animations/coloring.js"></script>
+<script src="./src/animations/TreeDisplay.js"></script>
 
 <!-- Algorithms -->
-<script src="./DFS.js"></script>
-<script src="./BFS.js"></script>
-<script src="./Dijkstra.js"></script>
-<script src="./Bellman-Ford.js"></script>
+<script src="./src/algorithms/DFS.js"></script>
+<script src="./src/algorithms/BFS.js"></script>
+<script src="./src/algorithms/Dijkstra.js"></script>
+<script src="./src/algorithms/Bellman-Ford.js"></script>
 </head>
 
 <!-- That style -->
@@ -149,6 +151,7 @@ $(".btn[type=changeBackground]").on("click", function(event) {
 })
 
 function download(fileName) {
+  if(graphExists) {
     var svg = d3.select("#svg-algo"),
         html = svg
           .attr("version", 1.1)
@@ -185,6 +188,7 @@ function download(fileName) {
         a.href = canvas.toDataURL("image/png");
         a.click();
     };
+  }
 }
 </script>
 

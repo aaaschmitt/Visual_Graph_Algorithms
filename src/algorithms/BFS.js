@@ -1,5 +1,4 @@
 /* BFS traversal of the d3 force directed graph */
-var PREVISIT_COLOR = "#990099";
 
 function BFS() {
 	visited = new Set();

@@ -5,7 +5,8 @@ var cur_algorithm = 0,
     isSetup = false,
     runNext = false,
     isPaused = false,
-    isRunning = false;
+    isRunning = false,
+    graphExists = false;
 
 //Nodes and Links
 var nodes = {},
@@ -36,20 +37,20 @@ var START_NODE = 'A';
 var algorithms = [
     "DFS", "BFS", "Dijkstra", "Bellman", "Kruskal", "Prim"],
     direct_csv_files = {
-        "DFS" : "./DFS_direct.csv",
-        "BFS" : "./BFS_direct.csv",
-        "Dijkstra" : "./Dijkstra_direct.csv",
-        "Bellman" : "./Bellman_direct.csv",
+        "DFS" : "./src/csv/DFS_direct.csv",
+        "BFS" : "./src/csv/BFS_direct.csv",
+        "Dijkstra" : "./src/csv/Dijkstra_direct.csv",
+        "Bellman" : "./src/csv/Bellman_direct.csv",
         "Kruskal" : 1,
         "Prim" : 1
     },
     undirect_csv_files = {
-        "DFS" : "./DFS_undirect.csv",
-        "BFS" : "./BFS_undirect.csv",
-        "Dijkstra" : "./Dijkstra_undirect.csv",
-        "Bellman" : "./Bellman_undirect.csv",
-        "Kruskal" : "./Kruskal.csv",
-        "Prim" : "Prim.csv"
+        "DFS" : "./src/csv/DFS_undirect.csv",
+        "BFS" : "./src/csv/BFS_undirect.csv",
+        "Dijkstra" : "./src/csv/Dijkstra_undirect.csv",
+        "Bellman" : "./src/csv/Bellman_undirect.csv",
+        "Kruskal" : "./src/csv/Kruskal.csv",
+        "Prim" : "./src/csv/Prim.csv"
     };
 
 /**
@@ -57,6 +58,7 @@ var algorithms = [
  */
 function setup(index, directed) {
 
+    graphExists = true;
     cur_algorithm = index;
     FLASH_TIME = 0;
 
@@ -367,6 +369,8 @@ function run() {
             default:
                 break;
         }
+
+        runAnimation(algorithmStates);
 
         return;
     }
