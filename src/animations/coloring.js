@@ -232,7 +232,8 @@ function colorAndResizeTreeNode (tree_id, color, delay, width, height) {
  */
 function setTreeNodeDataValue(tree_id, value) {
 	var text = DATA_NAME + ": " + String(value);
-	d3.select("#tree_node_data_text-" + tree_id).html(text);
+	console.log(text);
+	d3.select("#data_text_" + tree_id).html(text);
 }
 
 

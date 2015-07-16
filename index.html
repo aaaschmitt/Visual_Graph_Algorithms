@@ -109,11 +109,18 @@ text {
 		<button onclick="run()" type="run" class="btn btn-danger">Run Algorithm!</button>
 	</div>
   <div class="btn-group" role="group" aria-label="...">
+    <button onclick="isPaused = !isPaused;" class="btn btn-primary">Pause</button>
+  </div>
+  <div class="btn-group" role="group" aria-label="...">
+    <button onclick="isPasued = true; currentStateIndex = Math.max(0, currentStateIndex+=1); runAnimation();" type="step" class="btn btn-info">-Step</button>
+    <button onclick="isPasued = true; currentStateIndex = Math.min(algorithmStates.length-1, currentStateIndex+=1); runAnimation();" type="step" class="btn btn-info">Step+</button>
+  </div>
+  <div class="btn-group" role="group" aria-label="...">
     <button type="changeBackground" class="btn btn-primary">Change BackGround Color</button>
   </div>
 </div>
 
-<!-- controls buttons -->
+<!-- JS for buttons -->
 <script>
 $(".btn[type!=changeBackground]").on("click", function(event) {
   var elmType = $(this).attr("type");

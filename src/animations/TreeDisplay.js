@@ -11,7 +11,7 @@ var BORDER_COLOR = "#000000",
 	START_TREE_NODE_COLOR = "#0066FF",
 	START_TREE_NODE_WIDTH = 50,
 	START_TREE_NODE_HEIGHT = 35,
-	TREE_TRANSITION_TIME = 2 * FLASH_INT;
+	TREE_TRANSITION_TIME = 4 * FLASH_INT;
 
 var WIDTH = 600,
 	HEIGHT = 600,
@@ -136,7 +136,7 @@ function setupTree(nodeNames, dataVals, title) {
 	    	return DATA_NAME + ": " + String(display_val); 
 		 })
         .attr("class", "tree-node-data-text")
-        .attr("id", function(d) {return "tree_node_data_text-" + d.name});
+        .attr("id", function(d) {return "data_text_tree_node" + d.name});
 
 }
 
@@ -193,16 +193,7 @@ function computeNodes(rootName, nodeNames, dataVals) {
  */
 function updateTree(nodeNames, dataVals, deletedNode) {
 	console.log("tree update");
-	//need to make copies of the current state
-	var cur_names = [],
-		cur_vals = {},
-		temp;
-	for (var i = 0; i < nodeNames.length; i++) {
-		temp = nodeNames[i];
-		cur_names.push(temp);
-		cur_vals[temp] = dataVals[temp];
-	}
-	treeTransition(cur_names, cur_vals, deletedNode)
+	return treeTransition(nodeNames, dataVals, deletedNode)
 }
 
 /**
@@ -285,6 +276,8 @@ function treeTransition(nodeNames, dataVals, deletedNode) {
 				.style("fill", "none")
 				.attr("cur_color", START_EDGE_COLOR)
 				.attr("id", function(d) { return "treeLink" + d.source.name + d.target.name; });
+
+	return TREE_TRANSITION_TIME;
 }
 
 /**

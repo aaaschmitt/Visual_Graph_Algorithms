@@ -11,28 +11,27 @@ var algorithmStates = [],
  * this runs the animation.
  *
  * A state is an array of child objects to be colored at a timestep: 
- * [{id: 123 color: "#fffff", text: "[1" animation: colorNode, change: null, isTree: false},...]
+ * [{id: 123 color: "#fffff", text: "[1", animation: colorNode, change: null, isTree: false},...]
  * change property should take on the values: true, false, or null
  * 
- * @param states - an array of states.
  */
-function runAnimation(states) {
-	if (!isPaused) {
+function runAnimation() {
 
-		if (currentStateIndex > states.length-1) {
-			currentStateIndex = states.length-1;
-			return;
-		} else if (currentStateIndex < 0) {
-			currentStteIndex = 0;
-		}
+	if (currentStateIndex > algorithmStates.length-1) {
+		currentStateIndex = algorithmStates.length-1;
+		return;
+	} else if (currentStateIndex < 0) {
+		currentStateIndex = 0;
+	}
 
-		FLASH_TIME = 0;
-		console.log(states);
-		var longestTime = runAnimationState(states[currentStateIndex])
-		currentStateIndex += 1;
-		
+	FLASH_TIME = 0;
+	var longestTime = runAnimationState(algorithmStates[currentStateIndex])
+	currentStateIndex += 1;
+	
+	//schedule callback if not paused
+	if (!isPaused && currentStateIndex < algorithmStates.length) {
 		TIMEOUT_IDS.push(setTimeout(function() {
-			runAnimation(states)
+			runAnimation()
 		}, longestTime));
 	}
 }
@@ -47,7 +46,7 @@ function runAnimationState(state) {
 
 		//tree transition animations
 		if (child.isTree) {
-			stateTimes.push(updateTree(child.nodeNames, child.dataVals, child.deletedNode));
+			stateTimes.push(child.animation(child.nodeNames, child.dataVals, child.deletedNode));
 		}
 
 		//Node and Edge animations
@@ -64,13 +63,13 @@ function runAnimationState(state) {
 			}
 
 			//update text after animations if necessary
-			if (child.updateText ) {
+			if (child.updateText) {
 				child.textUpdater(child.id, child.text);
 			}
 		}
 	}
 
-	return Math.max.apply(null, stateTimes);	//use spread operator to find max of an array
+	return Math.max.apply(null, stateTimes);
 }
 
 /**
@@ -89,8 +88,14 @@ function State() {
 	this.children = [];
 }
 
-State.prototype.addChild = function(childObject) {
-	this.children.push(childObject);
+State.prototype.addChild = function(childObj) {
+	this.children.push(childObj);
+}
+
+State.prototype.addChildren = function(childrenObjects) {
+	childrenObjects.forEach(function(childObj) {
+		this.children.push(childObj);
+	}, this);
 }
 
 State.prototype.popChild = function(id) {
@@ -165,8 +170,19 @@ function EdgeState(id, color, shouldChange) {
  * deletedNode - the id of the node that was deleted from the heap
  */
 function TreeState(nodeNames, dataVals, deletedNode) {
+	//need to make copies of the current state
+	var cur_names = [],
+		cur_vals = {},
+		temp;
+	for (var i = 0; i < nodeNames.length; i++) {
+		temp = nodeNames[i];
+		cur_names.push(temp);
+		cur_vals[temp] = dataVals[temp];
+	}
+
 	this.isTree = true;
-	this.nodeNames = nodeNames;
-	this.dataVals = dataVals;
+	this.nodeNames = cur_names;
+	this.dataVals = cur_vals;
 	this.deletedNode = deletedNode;
+	this.animation = updateTree;
 }

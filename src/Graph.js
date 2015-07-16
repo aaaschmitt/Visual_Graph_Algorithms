@@ -278,17 +278,29 @@ function setup(index, directed) {
             .attr("class", "node-text")
             .attr("id", function(d) {return "node_text-" + d.name});
 
-        //run specialized setup procedures if necessary
+        //build array of states for algorithm
+        algorithmStates = [];
+        currentStateIndex = 0;
+        FLASH_TIME = 0;
         switch(cur_algorithm) {
-            case 2: setup_Dijkstra(); break;
+            case 0: DFS(); break;
+            case 1: BFS(); break;
+            case 2: Dijkstra(); break;
+            case 3: Bellman(); break;
+            case 4: Kruskal(); break;
+            case 5: Prim(); break;
+            default:
+                isSetup = false;
+                return;
         }
 
-        // A graph exists so we can run algorithms
+        // A graph with states exists so we can run algorithms
         isSetup = true;
         if (runNext) {
             runNext = false;
             run();
         }
+
 
         function tick() {
 
@@ -314,37 +326,13 @@ function setup(index, directed) {
 };
 
 /**
- * Sets up the binary heap and dist values for Dijkstra's algorithm.
- */
-function setup_Dijkstra(algo_num, direction) {
-
-    //Set up Heap display and color nodes to initial state
-    dist = {};
-    algo_nodes.forEach(function(node) {
-        colorNode(node, ON_HEAP_COLOR);
-        setDistance(node, MAX_NUM);
-    });
-
-    //set start node dist to 0
-    setDistance(START_NODE, 0);
-
-    //Initialize heap
-    var H = new Heap(dist);
-    //color start node green
-    colorNode(H.peek(), SHORTEST_TREE_COLOR);
-
-    //Initialize heap display
-    DATA_NAME = "dist";
-    setupTree(H.h, dist, "Binary Heap");
-}
-
-/**
  * Attmept to run the currently selected algorithm
  */
 function run() {
 
     //clear any currently running events
     clearEvents();
+
 
     //check if a graph has been built yet
     if (!isSetup) {
@@ -359,18 +347,7 @@ function run() {
         isRunning = true;
         isSetup = false;
 
-        switch(cur_algorithm) {
-            case 0: DFS(); break;
-            case 1: BFS(); break;
-            case 2: Dijkstra(); break;
-            case 3: Bellman(); break;
-            case 4: Kruskal(); break;
-            case 5: Prim(); break;
-            default:
-                break;
-        }
-
-        runAnimation(algorithmStates);
+        runAnimation();
 
         return;
     }

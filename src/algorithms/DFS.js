@@ -16,9 +16,7 @@ var visited = new Set(),
 function DFS() {
 	visited = new Set();
 	clock = 0;
-	FLASH_TIME = 0;
 	preNums = {};
-	algorithmStates = [];
 
 
 	var nodeArray = [];
