@@ -1,0 +1,140 @@
+/**
+ * Color Presets for a black background.
+ */
+circle {
+  fill: #ccc;
+  stroke: #fff;
+  stroke-width: 0px;
+}
+
+#page-title {
+  color: #0066FF;
+}
+
+text {
+  font: 30px sans-serif;
+  fill: white;
+  pointer-events: none;
+}
+
+svg {
+  background: black;
+}
+
+body {
+  background: black;
+}
+
+/**
+ * Sizing of svg and info display elements
+ */
+.graph, .struct, .data-struct {
+ display: inline-block;
+ position: relative;
+ width: 45%;
+ padding-bottom: 10%;
+ float: left;
+ 
+ vertical-align: left;
+}
+
+.data-struct {
+  width: 100%;
+}
+
+#error {
+  width : 50%;
+}
+
+#error, .struct {
+  padding: 5px;
+}
+
+#svg-algo, #svg-data-struct {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+/** This puts the title for the data struct and the control
+ * button on the same line. 
+ */
+#control-btn-toolbar {
+  display: inline-block;
+}
+
+#data-struct-title {
+  min-width: 20%;
+  margin: 0 40% 0 0;
+  vertical-align: middle;
+  float: right;
+  font-size: 30px;
+}
+
+/**
+ * Button Styling
+ */
+
+.btn-toolbar {
+  padding-left: 5px;
+  padding-bottom: 5px;
+}
+
+.dropdown-menu > li {
+    width: 450px;
+}
+
+/** Remove background, border, and shadow from dropdown */
+.dropdown-menu {
+  background: none;
+  border: none;
+  -webkit-box-shadow: 0 5px 15px rgba(0,0,0,0);
+    -moz-box-shadow: 0 5px 15px rgba(0,0,0,0);
+    -o-box-shadow: 0 5px 15px rgba(0,0,0,0);
+    box-shadow: 0 5px 15px rgba(0,0,0,0);
+}
+
+/** I wanted a black button. This is the price you pay..... */
+.btn-inverse {
+  color: #ffffff;
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  background-color: #363636;
+  *background-color: #222222;
+  background-image: -moz-linear-gradient(top, #444444, #222222);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#444444), to(#222222));
+  background-image: -webkit-linear-gradient(top, #444444, #222222);
+  background-image: -o-linear-gradient(top, #444444, #222222);
+  background-image: linear-gradient(to bottom, #444444, #222222);
+  background-repeat: repeat-x;
+  border-color: #222222 #222222 #000000;
+  border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff444444', endColorstr='#ff222222', GradientType=0);
+  filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, .2);
+  -webkit-box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 1px 1px rgba(0, 0, 0, .075);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 1px 1px rgba(0, 0, 0, .075);
+}
+
+.btn-inverse:hover,
+.btn-inverse:focus,
+.btn-inverse:active,
+.btn-inverse.active,
+.btn-inverse.disabled,
+.btn-inverse[disabled] {
+  color: #ffffff;
+  background-color: #222222;
+  *background-color: #151515;
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+             box-shadow: inset 0 3px 5px rgba(0, 0, 0, .125);
+}
+
+.btn-inverse:active,
+.btn-inverse.active {
+  background-color: #080808 \9;
+}
+
+.btn-inverse.active {
+  color: rgba(255, 255, 255, 0.75);
+}

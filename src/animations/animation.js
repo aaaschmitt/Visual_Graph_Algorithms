@@ -30,20 +30,39 @@ function runAnimation() {
 	
 	//schedule callback if not paused
 	if (!isPaused && currentStateIndex < algorithmStates.length) {
+		isRunning = true;
 		TIMEOUT_IDS.push(setTimeout(function() {
 			runAnimation()
 		}, longestTime));
+	} else if (currentStateIndex >= algorithmStates.length) {
+		isRunning = false;
 	}
 }
 
+function setCurrentState() {
+	var state = algorithmStates[currentStateIndex];
+
+	$.each(state.children, function(id, child) {
+
+		if (child.isTree) {
+			setupTree(child.nodeNames, child.dataVals, tree_title);
+		}
+
+		else {
+			child.colorAnimation(id, child.currentColor, 0);
+
+			if (child.updateText) {
+				child.textUpdater(id, child.currentText);
+			}
+		}
+	})
+}
+
 function runAnimationState(state) {
-	var	objects = state.children,
-		stateTimes = [],
-		child;
+	var stateTimes = [];
 
-	for (var i = 0; i < objects.length; i++) {
-		child = objects[i];
 
+	$.each(state.children, function(id, child) {
 		//tree transition animations
 		if (child.isTree) {
 			stateTimes.push(child.animation(child.nodeNames, child.dataVals, child.deletedNode));
@@ -52,22 +71,22 @@ function runAnimationState(state) {
 		//Node and Edge animations
 		else {
 
-			//flashAndResize animations
+			//dynamic animations
 			if (child.change !== null) {
-				stateTimes.push(child.animation(child.id, child.color, child.change));
+				stateTimes.push(child.dynamicAnimation(id, child.currentColor, child.color, child.change));
 			} 
 
 			//regular color animations
 			else {
-				stateTimes.push(child.animation(child.id, child.color, 0));
+				stateTimes.push(child.colorAnimation(id, child.color, 0));
 			}
 
 			//update text after animations if necessary
 			if (child.updateText) {
-				child.textUpdater(child.id, child.text);
+				child.textUpdater(id, child.text);
 			}
 		}
-	}
+	});
 
 	return Math.max.apply(null, stateTimes);
 }
@@ -76,7 +95,7 @@ function runAnimationState(state) {
  * Returns a new state and pushes it onto the array of states
  */
 function createState() {
-	var state = new State();
+	var state = new State(algorithmStates.length);
 	algorithmStates.push(state);
 	return state;
 }
@@ -84,80 +103,119 @@ function createState() {
 /**
  * A State - pretty much just an array
  */
-function State() {
-	this.children = [];
+function State(index) {
+	this.children = {};
+	this.index = index;
 }
 
 State.prototype.addChild = function(childObj) {
-	this.children.push(childObj);
+	this.children[childObj.id] = childObj;
 }
 
 State.prototype.addChildren = function(childrenObjects) {
 	childrenObjects.forEach(function(childObj) {
-		this.children.push(childObj);
+		this.children[childObj.id] = childObj;
 	}, this);
 }
 
 State.prototype.popChild = function(id) {
-	for (var i = 0; i < this.children.length; i++) {
-		if (this.children[i].id === id) {
-			return this.children.splice(i, 1)[0];
+	return this.children[id];
+}
+
+/**
+ * A ChildState object superType for things that are not a TreeState
+ */
+function ChildState(id, defaultColor, defaultText, text, color, shouldChange, index) {
+	this.id = id;
+	this.color = color;
+	this.change = shouldChange;
+	this.stateIndex = index;
+	this.isTree = false;
+	this.text = text;
+
+	console.log(text);
+	console.log(index);
+	var previousObj = findPreviousObj(id, index);
+	if (index === 0 && text !== null) {
+		console.log("set this");
+		this.currentText = text;
+		this.currentColor = color;
+		return;
+	} 
+
+	if (!previousObj) {
+		this.currentColor = defaultColor;
+		this.currentText = defaultText;
+	} else {
+		this.currentColor = previousObj.color;
+		if (previousObj.text !== undefined && previousObj.text !== null) {
+			this.currentText = previousObj.text;
+		} else {
+			this.currentText = previousObj.currentText;
 		}
 	}
 }
 
-/**
- * A NodeState object
- */
-function NodeState(id, color, text, shouldChange) {
-	this.id = id;
-	this.color = color;
-	this.isTree = false;
+function findPreviousObj(id, index) {
+	if (index == 0) {
+		return false;
+	}
+	for (var i = index-1; i > 0; --i) {
+		var previousObj = algorithmStates[i].children[id];
+		if ( previousObj !== undefined) {
+			return previousObj;
+		}
+	}
+	return false;
+}
 
-	this.text = text;
+/**
+ * A NodeState object inherits from chi
+ */
+NodeState.prototype.constructor = NodeState;
+NodeState.prototype.parent = ChildState;
+function NodeState(id, color, text, shouldChange, index) {
+	var defaultColor = START_NODE_COLOR;
+	var defaultText = id;
+	this.parent.call(this, id, defaultColor, defaultText, text, color, shouldChange, index);
+
 	this.updateText = (text === null) ? false : true;
 	this.textUpdater = changeNodeText;
 
-	this.change = shouldChange;
-	if (shouldChange !== null) {
-		this.animation = flashColorAndResizeNode;
-	} else {
-		this.animation = colorNode;
-	}
+	this.dynamicAnimation = flashColorAndResizeNode;
+	this.colorAnimation = colorNode;
 }
 
 /**
  * A TreeNodeState object
  */
-function TreeNodeState(id, color, text, shouldChange) {
-	this.id = "tree_node" + id;
-	this.color = color;
-	this.isTree = false;
+TreeNodeState.prototype.constructor = TreeNodeState;
+TreeNodeState.prototype.parent = ChildState;
+function TreeNodeState(id, color, text, shouldChange, index) {
+	var defaultColor = START_TREE_NODE_COLOR;
+	var defaultText = TREE_DATA_START_VAL;
+	this.parent.call(this, "tree_node" + id, defaultColor, defaultText, text, color, shouldChange, index);
 
-	this.text = text;
 	this.updateText = (text === null) ? false : true;
 	this.textUpdater = setTreeNodeDataValue;
-
-	this.change = shouldChange;
-	this.animation = flashColorAndResizeTreeNode;
+	this.dynamicAnimation = flashColorAndResizeTreeNode;
+	this.colorAnimation = colorNode;
 }
 
 /**
  * An EdgeState object
  */
-function EdgeState(id, color, shouldChange) {
-	this.id = id;
-	this.color = color;
-	this.isTree = false;
+EdgeState.prototype.constructor = EdgeState;
+EdgeState.prototype.parent = ChildState;
+function EdgeState(id, color, shouldChange, index) {
+	var defaultColor = START_EDGE_COLOR;
+	var defaultText = null
+	var text = null;
+	this.parent.call(this, id, defaultColor, defaultText, text, color, shouldChange, index);
 
 	this.updateText = false;
-
-	this.change = shouldChange;
-	if (shouldChange !== null) {
-		this.animation = flashColorAndResizeEdge;
-	} else {
-		this.animation = colorEdge;
-	}
+	this.dynamicAnimation = flashColorAndResizeEdge;
+	this.colorAnimation = colorEdge;
 }
 
 /**
@@ -165,7 +223,7 @@ function EdgeState(id, color, shouldChange) {
  * 
  * @params
  * nodes_names - array of names of nodes. Is formated such that the children of a node
- * 		 		 are at locations left = (2*i+s1) and right = (2*i+2)
+ * 		 		 are at locations left = (2*i+1) and right = (2*i+2)
  * dataVals - a dictionary mapping data entries to their values 
  * deletedNode - the id of the node that was deleted from the heap
  */

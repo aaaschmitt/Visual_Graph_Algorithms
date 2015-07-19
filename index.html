@@ -3,203 +3,124 @@
 <meta charset="utf-8">
 <title>Visual Graph Algorithms</title>
 
-<!-- d3 and Bootstrap/Jquery cuz I'm lazy -->
-<script src="./support/jquery-1.11.3.min.js"></script>
+<head>
+
+<!-- Style -->
 <link rel="stylesheet" href="./support/bootstrap-3.3.4/css/bootstrap.min.css"></link>
 <link rel="stylesheet" href="./support/bootstrap-3.3.4/css/bootstrap-theme.min.css"></link>
-<script src="./support/bootstrap-3.3.4/js/bootstrap.min.js"></script>
-<script src="./support/d3/d3.min.js"></script>
+<link rel="stylesheet" href="./src/graph.css"></link>
 
-<!-- Launcher and utils -->
-<script src="./src/Graph.js"></script>
-<script src="./src/utils/Heap.js"></script>
-
-<!-- Animations -->
-<script src="./src/animations/animation.js"></script>
-<script src="./src/animations/coloring.js"></script>
-<script src="./src/animations/TreeDisplay.js"></script>
-
-<!-- Algorithms -->
-<script src="./src/algorithms/DFS.js"></script>
-<script src="./src/algorithms/BFS.js"></script>
-<script src="./src/algorithms/Dijkstra.js"></script>
-<script src="./src/algorithms/Bellman-Ford.js"></script>
 </head>
 
-<!-- That style -->
-<style>
-
-circle {
-  fill: #ccc;
-  stroke: #fff;
-  stroke-width: 0px;
-}
-
-text {
-  font: 30px sans-serif;
-  pointer-events: none;
-}
-
-.graph, .struct, .data-struct {
- display: inline-block;
- position: relative;
- width: 45%;
- padding-bottom: 10%;
- float: left;
- 
- vertical-align: left;
-}
-
-.data-struct {
-  width: 100%;
-}
-
-#error {
-  width : 50%;
-}
-
-
-#svg-algo, #svg-data-struct {
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-
-</style>
-
-<h1 id="page-title">Graph Algorithms by Andy Schmitt, UC Berkeley</h1>
-
-<!-- Algorithm Setup Buttons -->
-<div class="btn-toolbar" role="toolbar" aria-label="...">
-  <div class="btn-group" role="group" aria-label="...">
-  	<button onclick="setup(0, isDirected);" type="algo" class="btn btn-primary active">DFS</button>
-  	<button onclick="setup(1, isDirected);" type="algo" class="btn btn-primary">BFS</button>
-  </div>
-  <div class="btn-group" role="group" aria-label="...">
-  	<button onclick="setup(2, isDirected);" type="algo" class="btn btn-success">Dijkstra's</button>
-  	<button onclick="setup(3, isDirected);" type="algo" class="btn btn-success">Bellman-Ford</button>
-  </div>
-  <div class="btn-group" role="group" aria-label="...">
-  	<button onclick="setup(4, isDirected);" type="algo" class="btn btn-info">Kruskal's</button>
-  	<button onclick="setup(5, isDirected);" type="algo" class="btn btn-info">Prim's</button>
-  </div>
-  <div class="btn-group" role="group" aria-label="...">
-    <button onclick="download(algorithms[cur_algorithm])" type="download" class="btn btn-danger">Download Graph As Image</button>
-  </div>
+<div class="page-header">
+  <h2 id="page-title">Graph Algorithms by Andy Schmitt, UC Berkeley</h2>
 </div>
 
-<br>
+<!-- Selection Btns Toolbar -->
+<div class ="btn-toolbar" id="selection-btn-toolbar">
 
-<!-- Directed and Undirected Buttons and Run button -->
+  <!-- Algorithm Btns Dropdown -->
+  <div class="btn-group" role="group" aria-label="..." data-val="algo-btns">
+    <button class="btn btn-success dropdown-toggle" type="dropdown-toggle" data-toggle="dropdown">
+      Select Algorithm <span class="badge" id="algo-badge">DFS</span> <span class="glyphicon glyphicon-triangle-bottom"></span>
+    </button>
+        <ul class="dropdown-menu" role="menu">
+            <li id="algo-dropdown-menu">
+              <div class="btn-toolbar collapse" role="toolbar" aria-label="..." id="algo-btns">
+                <div class="btn-group" role="group" aria-label="...">
+                  <button type="algo" class="btn btn-primary active" data-val="0">DFS</button>
+                  <button type="algo" class="btn btn-primary" data-val="1">BFS</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="...">
+                  <button type="algo" class="btn btn-success" data-val="2">Dijkstra's</button>
+                  <button type="algo" class="btn btn-success" data-val="3">Bellman-Ford</button>
+                </div>
+                <div class="btn-group" role="group" aria-label="...">
+                  <button type="algo" class="btn btn-info" data-val="4">Kruskal's</button>
+                  <button type="algo" class="btn btn-info" data-val="5">Prim's</button>
+                </div>
+              </div>
 
-<div class="btn-toolbar" role="toolbar" aria-label="...">
-	<div class="btn-group" role="group" aria-label="...">
-		<button onclick="isDirected = true; setup(cur_algorithm, isDirected);" type="direction" class="btn btn-warning">Directed</button>
-		<button onclick="isDirected = false; setup(cur_algorithm, isDirected);" type="direction" class="btn btn-warning active">Un-Directed</button>
-	</div>
-  <div class="btn-group" role="group" aria-label="...">
-    <button onclick="FLASH_INT = 300;" type="speed" class="btn btn-warning">Slow</button>
-    <button onclick="FLASH_INT = 200" type="speed" class="btn btn-warning active">Medium</button>
-    <button onclick="FLASH_INT = 100" type="speed" class="btn btn-warning">Fast</button>
-    <button onclick="FLASH_INT = 50" type="speed" class="btn btn-warning">Very Fast</button>
+            </li>
+        </ul>
   </div>
-	<div class="btn-group" role="group" aria-label="...">
-		<button onclick="run()" type="run" class="btn btn-danger">Run Algorithm!</button>
-	</div>
-  <div class="btn-group" role="group" aria-label="...">
-    <button onclick="isPaused = !isPaused;" class="btn btn-primary">Pause</button>
+
+  <!-- Direction Btns Dropdown -->
+  <div class="btn-group" role="group" aria-label="..." data-val="direction-btns">
+    <button class="btn btn-warning dropdown-toggle" type="dropdown-toggle" data-toggle="dropdown">
+      Select Directedness <span class="badge" id="direction-badge">Un-Directed</span> <span class="glyphicon glyphicon-triangle-bottom"></span>
+    </button>
+        <ul class="dropdown-menu" role="menu">
+            <li id="direction-dropdown-menu">
+              <div class="collapse" id="direction-btns">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="direction" class="btn btn-warning" data-val="true">Directed</button>
+                    <button type="direction" class="btn btn-warning active" data-val="false">Un-Directed</button>
+                </div>
+              </div>
+            </li>
+        </ul>
   </div>
-  <div class="btn-group" role="group" aria-label="...">
-    <button onclick="isPasued = true; currentStateIndex = Math.max(0, currentStateIndex+=1); runAnimation();" type="step" class="btn btn-info">-Step</button>
-    <button onclick="isPasued = true; currentStateIndex = Math.min(algorithmStates.length-1, currentStateIndex+=1); runAnimation();" type="step" class="btn btn-info">Step+</button>
+
+
+  <!-- Speed Btns Dropdown -->
+  <div class="btn-group" role="group" aria-label="..." data-val="speed-btns">
+    <button class="btn btn-danger dropdown-toggle" type="dropdown-toggle" data-toggle="dropdown">
+       Select Speed <span class="badge" id="speed-badge">Medium</span> <span class="glyphicon glyphicon-triangle-bottom"></span>
+    </button>
+        <ul class="dropdown-menu" role="menu">
+            <li id="speed-dropdown-menu">
+              <div class= "collapse" id="speed-btns">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="speed" class="btn btn-danger" data-val="300">Slow</button>
+                    <button type="speed" class="btn btn-danger active" data-val="200">Medium</button>
+                    <button type="speed" class="btn btn-danger" data-val="100">Fast</button>
+                    <button type="speed" class="btn btn-danger" data-val="50">Very Fast</button>
+                </div>
+              </div>
+            </li>
+        </ul>
   </div>
-  <div class="btn-group" role="group" aria-label="...">
-    <button type="changeBackground" class="btn btn-primary">Change BackGround Color</button>
+
+  <!-- Special Utility Btns -->
+  <div class="btn-group" role="group" aria-label="..." data-val="util-btns">
+    <button class="btn btn-primary dropdown-toggle" type="dropdown-toggle" data-toggle="dropdown">
+      Special Utils <span class="badge" id="util-badge"><span class="glyphicon glyphicon-cog"></span></span> <span class="glyphicon glyphicon-triangle-bottom"></span>
+    </button>
+        <ul class="dropdown-menu" role="menu">
+            <li id="util-dropdown-menu">
+              <div class="btn-toolbar collapse" id="util-btns">
+                <div class="btn-group" role="group" aria-label="...">
+                    <button type="download" class="btn btn-info util-item">Graph to PNG <span class="glyphicon glyphicon-download-alt"></span></button>
+                  </div>
+
+                  <div class="btn-group" role="group" aria-label="...">
+                    <button type="changeBackground" class="btn btn-default util-item">Lighter</button>
+                </div>
+              </div>
+            </li>
+        </ul>
   </div>
+
+</div>
+<!-- Used to create space for button dropdowns -->
+<div class="fluff">
 </div>
 
-<!-- JS for buttons -->
-<script>
-$(".btn[type!=changeBackground]").on("click", function(event) {
-  var elmType = $(this).attr("type");
-  if (elmType != 'run' && elmType != 'download') {
-    $(".btn[type="+elmType+"]").removeClass("active");
-    $(this).addClass("active");
-  }
-  $(this).blur();   //don't want buttons to focus after selection
-})
+<div id="control">
+  <!-- Control Btn Toolbar -->
+  <div class="btn-toolbar" id="control-btn-toolbar">
 
-$(".btn[type=changeBackground]").on("click", function(event) {
-  var dur = 400;
-  var new_color = CUR_BACKGROUND_COLOR == "#000000" ? "#FFFFFF" : "#000000"; //Switch between black and white background
-  var title_color = new_color == "#FFFFFF" ? "#000000" : "#0066FF"
-  //color title
-  d3.select("#page-title").transition()
-    .style("color", title_color)
-    .duration(dur);
-  //color svg background
-  d3.selectAll("svg").transition()
-    .style("background", new_color)
-    .duration(dur);
-  //color body background
-  d3.select("body").transition()
-    .style("background-color", new_color)
-    .duration(dur);
-  //color all text
-  var temp = CUR_BACKGROUND_COLOR;
-  d3.selectAll("text").transition()
-    .style("fill", temp) //text is opposite color of background
-    .duration(dur);
-  CUR_TEXT_COLOR = CUR_BACKGROUND_COLOR;
-  CUR_BACKGROUND_COLOR = new_color;
-  $(this).blur();
-})
+    <div class="btn-group btn-group-lg" role="group" aria-label="...">
+      <button type="run" class="btn btn-default"><span class="glyphicon glyphicon-repeat"></span></button>
+      <button type="step" class="btn btn-default" data-val="backward"><span class="glyphicon glyphicon-step-backward"></span></button>
+      <button class="btn btn-default" type="pause"><span class="glyphicon glyphicon-play"></span></button>
+      <button type="step" class="btn btn-default" data-val="forward"><span class="glyphicon glyphicon-step-forward"></span></button>
+    </div>
+  </div>
 
-function download(fileName) {
-  if(graphExists) {
-    var svg = d3.select("#svg-algo"),
-        html = svg
-          .attr("version", 1.1)
-          .attr("xmlns", "http://www.w3.org/2000/svg")
-          .node().parentNode.innerHTML,
-
-        canvasId = "sBqSmOcj-1932418";
-
-    var imgsrc = 'data:image/svg+xml;base64,'+ btoa(unescape(encodeURIComponent(html)));
-
-    var canvas;
-    if (!document.getElementById(canvasId)) {
-
-      canvas = document.createElement("canvas");
-      canvas.id = canvasId;
-      canvas.height = 800;
-      canvas.width = 960;
-      canvas.style.display = "none";
-      document.body.appendChild(canvas);
-
-    }
-
-    canvas = document.getElementById(canvasId);
-    var context = canvas.getContext("2d");
-
-    var image = new Image;
-    image.src = imgsrc;
-    image.onload = function() {
-
-        context.drawImage(image, 0, 0);
-
-        var a = document.createElement("a");
-        a.download = fileName + ".png";
-        a.href = canvas.toDataURL("image/png");
-        a.click();
-    };
-  }
-}
-</script>
-
-<br>
+  <P class="label label-primary" id="data-struct-title"></P>
+</div>
 
 <!-- Display error/info messages here -->
 <div id="error" class="alert alert-info">
@@ -212,9 +133,32 @@ function download(fileName) {
 
 <!-- Display data structures here -->
 <div class="struct">
-  <h3 id="data-struct-title"></h3>
   <div class="data-struct">
   </div>
 </div>
+
+
+<!-- SCRIPTS -->
+
+<!-- js for d3, jquery, bootstrap -->
+<script src="./support/jquery-1.11.3.min.js"></script>
+<script src="./support/bootstrap-3.3.4/js/bootstrap.min.js"></script>
+<script src="./support/d3/d3.min.js"></script>
+
+<!-- Launcher and utils -->
+<script src="./src/utils/miscUtils.js"></script>
+<script src="./src/Graph.js"></script>
+<script src="./src/utils/Heap.js"></script>
+
+<!-- Animations -->
+<script src="./src/animations/coloring.js"></script>
+<script src="./src/animations/animation.js"></script>
+<script src="./src/animations/TreeDisplay.js"></script>
+
+<!-- Algorithms -->
+<script src="./src/algorithms/DFS.js"></script>
+<script src="./src/algorithms/BFS.js"></script>
+<script src="./src/algorithms/Dijkstra.js"></script>
+<script src="./src/algorithms/Bellman-Ford.js"></script>
 
 </html>

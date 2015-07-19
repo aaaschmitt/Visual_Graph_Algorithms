@@ -69,15 +69,15 @@ function previsit(node_id, parent_id) {
 
 	//flash node and edge
 	var flashState = createState();
-	flashState.addChild(new NodeState(node_id, PREVISIT_COLOR, node_id+"["+clock, true));
+	flashState.addChild(new NodeState(node_id, PREVISIT_COLOR, node_id+"["+clock, true, flashState.index));
 	
 	if (parent_id != null) {
 		var edge_id = get_edge_id(parent_id, node_id);
-		flashState.addChild(new EdgeState(edge_id, PREVISIT_COLOR, false));
+		flashState.addChild(new EdgeState(edge_id, PREVISIT_COLOR, false, flashState.index));
 
 		//color edge permanently
 		var colorEdgeState = createState();
-		colorEdgeState.addChild(new EdgeState(edge_id, POSTVISIT_COLOR, null));
+		colorEdgeState.addChild(new EdgeState(edge_id, POSTVISIT_COLOR, null, colorEdgeState.index));
 	}
 
 	clock += 1;
@@ -91,7 +91,7 @@ function visit(node_id) {
 	visited.add(node_id);
 
 	var state = createState();
-	state.addChild(new NodeState(node_id, VISIT_COLOR, null, true))
+	state.addChild(new NodeState(node_id, VISIT_COLOR, null, true, state.index))
 }
 
 /**
@@ -100,6 +100,6 @@ function visit(node_id) {
  */
 function postvisit(node_id) {
 	var state = createState();	
-	state.addChild(new NodeState(node_id, POSTVISIT_COLOR, node_id + "[" + preNums[node_id] + "," + clock + "]", true));
+	state.addChild(new NodeState(node_id, POSTVISIT_COLOR, node_id + "[" + preNums[node_id] + "," + clock + "]", true, state.index));
 	clock += 1;
 };

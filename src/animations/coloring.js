@@ -30,16 +30,14 @@ var NEW_NODE_RADIUS = 25,
  * color - color to flash to
  * change - true iff the node color should change at the end of the animation
  */
-function flashColorAndResizeNode(node_id, color, change) {
-
-	var startColor = d3.select("#" + node_id).attr("cur_color");
+function flashColorAndResizeNode(node_id, startColor, color, change) {
 
 	var animationTime = 0;
 
 	//flash colors
 	for (i=0; i<NUM_FLASHES; i++) {
-		animationTime += colorAndResizeNode(node_id, startColor, animationTime,  NEW_NODE_RADIUS);
-		animationTime += colorAndResizeNode(node_id, color, animationTime, START_NODE_RADIUS);
+		animationTime += colorAndResizeNode(node_id, color, animationTime,  NEW_NODE_RADIUS);
+		animationTime += colorAndResizeNode(node_id, startColor, animationTime, START_NODE_RADIUS);
 	}
 
 	//change color to new value if set
@@ -52,7 +50,6 @@ function flashColorAndResizeNode(node_id, color, change) {
 
 /**
  * Colors a node using a smooth d3 transition.
- * Updates the node's cur_color attribute to reflect color change.
  *
  * @params
  * node_id - id of node
@@ -64,7 +61,6 @@ function colorNode(node_id, color, delay) {
 			 .style("fill", color)
 			 .duration(FLASH_INT)
 			 .delay(delay);
-	d3.select("#" + node_id).attr("cur_color", color);
 
 	return FLASH_INT;
 }
@@ -79,14 +75,12 @@ function colorNode(node_id, color, delay) {
  * radius - radius to transition to
  */
 function colorAndResizeNode(node_id, color, delay, radius) {
-	console.log(node_id);
 	d3.select("#" + node_id)
 		.transition()
 		 .style("fill", color)
 		 .attr("r", radius)
 		 .duration(FLASH_INT)
 		 .delay(delay);
-	d3.select("#" + node_id).attr("cur_color", color);
 
 	return FLASH_INT;
 }
@@ -110,8 +104,7 @@ function changeNodeText(node_id, text) {
  * color - color to flash to
  * change - true iff the edge color should change at the end of the animation
  */
-function flashColorAndResizeEdge(edge_id, color, change) {
-	var startColor = d3.select("#" + edge_id).attr("cur_color");
+function flashColorAndResizeEdge(edge_id, startColor, color, change) {
 
 	var animationTime = 0;
 
@@ -131,7 +124,6 @@ function flashColorAndResizeEdge(edge_id, color, change) {
 
 /**
  * Colors an edge in d3 force graph using a smooth d3 transition.
- * Updates the edge's cur_color attribute to reflect color change.
  */
 function colorEdge(edge_id, color, delay) {
 	//edge path
@@ -147,8 +139,6 @@ function colorEdge(edge_id, color, delay) {
 		 .style("fill", color)
 		 .duration(FLASH_INT)
 		 .delay(delay);
-
-	d3.select("#" + edge_id).attr("cur_color", color);
 
 	return FLASH_INT;
 }
@@ -175,8 +165,6 @@ function colorAndResizeEdge(edge_id, color, delay, strokeWidth, markerRefX) {
 		 .duration(FLASH_INT)
 		 .delay(delay);
 
-	d3.select("#" + edge_id).attr("cur_color", color);
-
 	return FLASH_INT;
 }
 
@@ -192,8 +180,7 @@ function colorAndResizeEdge(edge_id, color, delay, strokeWidth, markerRefX) {
  * color - color to flash to
  * change - true iff the edge color should change at the end of the animation
  */
-function flashColorAndResizeTreeNode (tree_id, color, change) {
-	var	startColor = d3.select("#" + tree_id).attr("cur_color");
+function flashColorAndResizeTreeNode (tree_id, startColor, color, change) {
 
 	var animationTime = 0;
 
@@ -222,7 +209,6 @@ function colorAndResizeTreeNode (tree_id, color, delay, width, height) {
 		 .attr("height", height)
 		 .duration(FLASH_INT)
 		 .delay(delay);
-	d3.select("#" + tree_id).attr("cur_color", color);
 
 	return FLASH_INT;
 }
@@ -232,7 +218,6 @@ function colorAndResizeTreeNode (tree_id, color, delay, width, height) {
  */
 function setTreeNodeDataValue(tree_id, value) {
 	var text = DATA_NAME + ": " + String(value);
-	console.log(text);
 	d3.select("#data_text_" + tree_id).html(text);
 }
 

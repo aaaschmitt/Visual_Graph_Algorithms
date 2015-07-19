@@ -4,7 +4,7 @@ var cur_algorithm = 0,
     isPositive = true,
     isSetup = false,
     runNext = false,
-    isPaused = false,
+    isPaused = true,
     isRunning = false,
     graphExists = false;
 
@@ -19,8 +19,8 @@ var nodes = {},
 //Colors
 var START_NODE_COLOR = "#0066FF",
     START_EDGE_COLOR = "#666",
-    CUR_BACKGROUND_COLOR = "#FFFFFF",
-    CUR_TEXT_COLOR = "#000000";
+    CUR_BACKGROUND_COLOR = "#000000",
+    CUR_TEXT_COLOR = "#FFFFFF";
 
 //Shape attributes
     START_NODE_RADIUS = 22,
@@ -31,7 +31,8 @@ var START_NODE_COLOR = "#0066FF",
 var force;
 
 //Starting node for algorithms
-var START_NODE = 'A';
+var START_NODE = 'A',
+    INFINITY_TEXT = "∞";
 
 //Files containing the graphs
 var algorithms = [
@@ -58,7 +59,12 @@ var algorithms = [
  */
 function setup(index, directed) {
 
+    if (isSetup && index == cur_algorithm) {
+        return;
+    }
+
     graphExists = true;
+    isRunning = false;
     cur_algorithm = index;
     FLASH_TIME = 0;
 
@@ -220,8 +226,7 @@ function setup(index, directed) {
                             return d.source.name + d.target.name + "c";
                         })
             .attr("d", "M0,-5L10,0L0,5")
-            .style("fill", START_EDGE_COLOR)
-            .attr("cur_color", START_EDGE_COLOR);
+            .style("fill", START_EDGE_COLOR);
 
         //build paths (edges)
         var path = svg.append("svg:g").selectAll("path")
@@ -232,8 +237,7 @@ function setup(index, directed) {
             .attr("marker-end", function(d) { return "url(#" + d.source.name + d.target.name + "w" + ")"; })
             .style("stroke", START_EDGE_COLOR)
             .style("stroke-width", START_EDGE_STROKE_WIDTH)
-            .style("fill", "none")
-            .attr("cur_color", START_EDGE_COLOR);
+            .style("fill", "none");
 
         //append edge labels to paths
         var linktext = svg.append("svg:g").selectAll("g.linklabelholder")
@@ -260,7 +264,6 @@ function setup(index, directed) {
             .attr("class", "node")
             .attr("id", function(d) {return d.name})
             .style("fill", START_NODE_COLOR)
-            .attr("cur_color", START_NODE_COLOR)
             .call(force.drag);
 
         //initialzie text to be appended to the circles
@@ -375,15 +378,3 @@ function get_weight(node_id, descend_id) {
         return edge_weights[descend_id+node_id];
     }
 }
-
-/**
- * Error message if user attempts to 
- * run MST on a directed graph
- */
-function MST_error() {
-    var error_msg = algorithms[cur_algorithm] + "'s is only defined for Un-Directed graphs! As are all MST algorithms.";
-    d3.select("#error")
-        .html(error_msg)
-        .attr("class", "alert alert-danger");
-    return "";
-};

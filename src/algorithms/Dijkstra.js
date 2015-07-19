@@ -2,7 +2,6 @@
 
 //global values
 var dist = {},
-	INFINITY_TEXT = "∞",
 	MAX_NUM = Number.MAX_VALUE;
 
 //colors for visualization
@@ -20,13 +19,13 @@ function Dijkstra() {
 	//all nodes have dist=∞ and prev=null
 	var initialState = createState();
 	algo_nodes.forEach(function(node) {
-		initialState.addChild(new NodeState(node, ON_HEAP_COLOR, getDistanceText(node, MAX_NUM), null));
+		initialState.addChild(new NodeState(node, ON_HEAP_COLOR, getDistanceText(node, MAX_NUM), null, initialState.index));
 		prev[node] = null;
 	});
 
 	//color start node and set it's distance to 0;
 	var startState = createState();
-	startState.addChild(new NodeState(START_NODE, SHORTEST_TREE_COLOR, getDistanceText(START_NODE, 0), null));
+	startState.addChild(new NodeState(START_NODE, SHORTEST_TREE_COLOR, getDistanceText(START_NODE, 0), null, startState.index));
 
 	//Initialize heap
 	var H = new Heap(dist);
@@ -47,7 +46,7 @@ function Dijkstra() {
 			shortestPathTree.add(prev_edge_id);
 			
 			var edgeState = createState();
-			edgeState.addChild(new EdgeState(prev_edge_id, SHORTEST_TREE_COLOR, null)); 
+			edgeState.addChild(new EdgeState(prev_edge_id, SHORTEST_TREE_COLOR, null, edgeState.index)); 
 		}
 
 		//If the min node that we pop off has a dist of infinity then we are done
@@ -58,11 +57,11 @@ function Dijkstra() {
 		//flash this node as being off the heap and update tree
 		var removedState = createState();
 		removedState.addChildren([
-			new NodeState(node_id, SHORTEST_TREE_COLOR, null, true),
-			new TreeNodeState(node_id, SHORTEST_TREE_COLOR, null, true),
+			new NodeState(node_id, SHORTEST_TREE_COLOR, null, true, removedState.index),
+			new TreeNodeState(node_id, SHORTEST_TREE_COLOR, null, true, removedState.index),
 		]);
 		var treeTransitionState = createState();
-		treeTransitionState.addChild(new TreeState(H.h, dist, node_id));
+		treeTransitionState.addChild(new TreeState(H.h, dist, node_id, treeTransitionState.index));
 
 		cur_node = nodes[node_id];
 
@@ -92,13 +91,13 @@ function Dijkstra() {
 					H.decreaseKey(descend_id);
 
 					var treeState = createState();
-					treeState.addChild(new TreeState(H.h, dist, null));
+					treeState.addChild(new TreeState(H.h, dist, null, treeState.index));
 				}
 
 				//color edge as as near-white to distinguish from nodes 
 				//later on that will form the shortest paths tree
 				var unusedState = createState();
-				unusedState.addChild(new EdgeState(edge_id, UNUSED_COLOR, null));
+				unusedState.addChild(new EdgeState(edge_id, UNUSED_COLOR, null, unusedState.index));
 			}
 		})
 	}
@@ -108,7 +107,7 @@ function Dijkstra() {
 	var finalState = createState();
 	for (id in edge_ids) {
 		if (!shortestPathTree.has(edge_ids[id])) {
-			finalState.addChild(new EdgeState(edge_ids[id], UNUSED_COLOR, null));
+			finalState.addChild(new EdgeState(edge_ids[id], UNUSED_COLOR, null, finalState.index));
 		}
 	}
 }
@@ -135,9 +134,9 @@ function flashColorAndResizeDescendantNodeAndEdge(node_id, edge_id, color, newDi
 
 	var state = createState();
 	state.addChildren([
-		new NodeState(node_id, color, nodeText, change),
-		new EdgeState(edge_id, color, false),
-		new TreeNodeState(node_id, color, treeText, change)
+		new NodeState(node_id, color, nodeText, change, state.index),
+		new EdgeState(edge_id, color, false, state.index),
+		new TreeNodeState(node_id, color, treeText, change, state.index)
 	]);
 
 	return state;
