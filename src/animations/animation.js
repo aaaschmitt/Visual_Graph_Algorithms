@@ -48,6 +48,10 @@ function setCurrentState() {
 			setupTree(child.nodeNames, child.dataVals, tree_title);
 		}
 
+		else if (child.isInfo) {
+			child.animate(child)
+		}
+
 		else {
 			child.colorAnimation(id, child.currentColor, 0);
 
@@ -66,6 +70,10 @@ function runAnimationState(state) {
 		//tree transition animations
 		if (child.isTree) {
 			stateTimes.push(child.animation(child.nodeNames, child.dataVals, child.deletedNode));
+		}
+
+		else if (child.isInfo) {
+			stateTimes.push(child.animate(child));
 		}
 
 		//Node and Edge animations
@@ -131,18 +139,16 @@ function ChildState(id, defaultColor, defaultText, text, color, shouldChange, in
 	this.change = shouldChange;
 	this.stateIndex = index;
 	this.isTree = false;
+	this.isInfo = false;
 	this.text = text;
 
-	console.log(text);
-	console.log(index);
-	var previousObj = findPreviousObj(id, index);
 	if (index === 0 && text !== null) {
-		console.log("set this");
 		this.currentText = text;
 		this.currentColor = color;
 		return;
 	} 
 
+	var previousObj = findPreviousObj(id, index);
 	if (!previousObj) {
 		this.currentColor = defaultColor;
 		this.currentText = defaultText;
@@ -237,10 +243,28 @@ function TreeState(nodeNames, dataVals, deletedNode) {
 		cur_names.push(temp);
 		cur_vals[temp] = dataVals[temp];
 	}
-
+	this.isInfo = false;
 	this.isTree = true;
 	this.nodeNames = cur_names;
 	this.dataVals = cur_vals;
 	this.deletedNode = deletedNode;
 	this.animation = updateTree;
+}
+
+/**
+ * An InfoState object - purpose is to display a message to the banner above the graph.
+ * 
+ * @params
+ * msg - a string, the message to be displayed
+ * startClass - the HTML class to be associated with the info element at it's start. 
+ 				Usually these are bootstrap classes i.e. "alert alert-[info, success, danger]"
+ * endClass - same classes as startClass. This is the class that the info element will end at after flashing.
+ */
+function InfoState(msg, startClass, endClass) {
+	this.isInfo = true;
+	this.isTree = false;
+	this.msg = msg;
+	this.sc = startClass;
+	this.ec = endClass;
+	this.animate = flashInfo;
 }

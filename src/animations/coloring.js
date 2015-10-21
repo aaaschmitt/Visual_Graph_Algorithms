@@ -241,27 +241,49 @@ function clearEvents() {
  * Flash a message on the screen. 
  *
  * @params
- * s - message string
- * alertStart - bootstrap alert color to flash first
- * alertEnd - bootstrap alert color that flash will end on (final state)
+ *  state - the InfoState object that is calling this animation
  */
-function flash_info(s, alertStart, alertEnd) {
+function flashInfo(state) {
 	var x = d3.select("#error");
+	var animationTime = 0
 	for (var j = 0; j < 4; j++) {
-			FLASH_TIME += FLASH_INT/1.5;
-			TIMEOUT_IDS.push( setTimeout( function() {
-					  						x.attr("class", "alert alert-" + alertStart); 
-								 			x.html ("<h3>" + s + "<h3>");
-								 		  }, 
-										FLASH_TIME)
-							);
+			
+		TIMEOUT_IDS.push( setTimeout( function() {
+				  						x.attr("class", state.sc); 
+							 			x.html ("<h3>" + state.msg + "<h3>");
+							 		  }, 
+									animationTime)
+						);
+		animationTime += FLASH_INT/1.5;
 
-			FLASH_TIME += FLASH_INT/1.5;
-			TIMEOUT_IDS.push( setTimeout( function() {
-					  						x.attr("class", "alert alert-" + alertEnd); 
-								 			x.html("<h3>" + s + "<h3>");
-								 		  }, 
-										FLASH_TIME)
-							);
-		}
+		TIMEOUT_IDS.push( setTimeout( function() {
+				  						x.attr("class", state.ec); 
+							 			x.html("<h3>" + state.msg + "<h3>");
+							 		  }, 
+									animationTime)
+						);
+		animationTime += FLASH_INT/1.5;
+	}
+
+	return animationTime
 }
+// function flash_info(s, alertStart, alertEnd) {
+// 	var x = d3.select("#error");
+// 	for (var j = 0; j < 4; j++) {
+// 			FLASH_TIME += FLASH_INT/1.5;
+// 			TIMEOUT_IDS.push( setTimeout( function() {
+// 					  						x.attr("class", "alert alert-" + alertStart); 
+// 								 			x.html ("<h3>" + s + "<h3>");
+// 								 		  }, 
+// 										FLASH_TIME)
+// 							);
+
+// 			FLASH_TIME += FLASH_INT/1.5;
+// 			TIMEOUT_IDS.push( setTimeout( function() {
+// 					  						x.attr("class", "alert alert-" + alertEnd); 
+// 								 			x.html("<h3>" + s + "<h3>");
+// 								 		  }, 
+// 										FLASH_TIME)
+// 							);
+// 		}
+// }

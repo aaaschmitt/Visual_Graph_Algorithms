@@ -11,22 +11,21 @@ var UPDATING_COLOR = "#FF0000",
 	UPDATE_MADE_COLOR = "#FB46FC";
 
 function Bellman() {
-	FLASH_TIME = 0;
 	dist = {};
 	prevEdge = new Set();
 	prev = {};
 
 	//initalize dist to infinity
+	var initState = createState()
+	var nodeDist;
 	algo_nodes.forEach(function(node) {
-		colorNode(node, UPDATING_COLOR);
-		setDistance(node, MAX_NUM);
+		//set start node's dist to 0
+		nodeDist = (node === START_NODE) ? 0 : MAX_NUM
+		initState.addChild(new NodeState(node, UPDATING_COLOR, 
+										 getDistanceText(node, nodeDist), 
+										 null, initState.index));
 		prev[node] = null;
 	});
-	FLASH_TIME += FLASH_INT;
-
-	//set start node dist to 0
-	setDistance(START_NODE, 0);
-	FLASH_TIME += FLASH_INT;
 
 	//repeat for |V|-1 times or until no updates are made
 	var updated = false,
@@ -35,8 +34,9 @@ function Bellman() {
 	for (var i = 0; i < NUM_NODES-1; i++) {
 
 		//display iteration number
-		var s = "Iteration: " + (i+1).toString();
-		flash_info(s, "danger", "info");
+		var msg = "Iteration: " + (i+1).toString();
+		var s = createState();
+		s.addChild(new InfoState(msg, "alert alert-danger", "alert alert-info"))
 
 
 		//relax each edge, they are far too stressed
@@ -52,37 +52,32 @@ function Bellman() {
 		}
 	}
 
-	var colorChoice;
-
-	flash_info("Checking for Negative Cycles and Constructing Shortest Paths Tree", "danger", "info");
+	var s = createState(),
+		msg = "Checking for Negative Cycles and Constructing Shortest Paths Tree";
+	s.addChild(new InfoState(msg, "alert alert-danger", "alert alert-info"));
 
 	//check for negative cycles and build the shortest paths tree
+	var edgeColor, s, nodeColor, edge_id;
 	algo_edges.forEach(function(edge) {
 
+			s = createState();
 			//if an edge is updated there is a negative cycle
 			updated = update(edge, first);
 			if (updated) {
-				flash_info("Negative cycle detected the results below may be erroneous!", "info", "danger");
+				s.addChild(new InfoState(msg, "alert alert-info", "alert alert-danger"));
 				return;
 			}
 
 			//color shortest path tree
-			var edge_id = get_edge_id(edge[0], edge[1]);
-			if (prevEdge.has(edge_id)) {
-				colorChoice = SHORTEST_TREE_COLOR;
-			} else {
-				colorChoice = UNUSED_COLOR;
-			}
-
-			flashColorAndResizeEdge(edge_id, colorChoice, false, true);
-			if (dist[edge[0]] != MAX_NUM) {
-				flashColorAndResizeNode(edge[1], SHORTEST_TREE_COLOR, true, true);
-			} else {
-				flashColorAndResizeNode(edge[1], UPDATING_COLOR, true, true);
-			}
+			edge_id = get_edge_id(edge[0], edge[1]);
+			nodeColor = (dist[edge[0]] != MAX_NUM) ? SHORTEST_TREE_COLOR : UPDATING_COLOR;
+			edgeColor = (prevEdge.has(edge_id)) ? SHORTEST_TREE_COLOR : UNUSED_COLOR;
+			s.addChild(new EdgeState(edge_id, edgeColor, true, s.index));
+			s.addChild(new NodeState(edge[1], nodeColor, null, true, s.index));
 	});
 
-	flash_info("Complete!", "info", "success");
+	s = createState();
+	s.addChild(new InfoState("Complete!", "alert alert-info", "alert alert-success"));
 }
 
 /**
@@ -96,7 +91,8 @@ function update(edge, first) {
 		edge_id = get_edge_id(u, v);
 
 	if (first) {
-		colorEdge(get_edge_id(u, v), UPDATING_COLOR, true, true);
+		var s = createState();
+		s.addChild(new EdgeState(get_edge_id(u, v), UPDATING_COLOR, true, s.index));
 	}
 
 	if (dist[u] == MAX_NUM) {
@@ -106,14 +102,14 @@ function update(edge, first) {
 	var newDist = dist[u] + get_weight(u, v);
 
 	if (dist[v] > newDist) {
-		setDistance(v, newDist);
+		var uState = createState();
+		uState.addChild(new EdgeState(edge_id, UPDATE_MADE_COLOR, false, uState.index));
+		uState.addChild(new NodeState(v, UPDATE_MADE_COLOR, getDistanceText(v, newDist), false, uState.index));
 		if (prev[v] != null) {
 			prevEdge.delete(prev[v]);
 		}
 		prev[v] = edge_id;
 		prevEdge.add(edge_id);
-		flashColorAndResizeEdge(edge_id, UPDATE_MADE_COLOR, false, false);
-		flashColorAndResizeNode(v, UPDATE_MADE_COLOR, true, false);
 		return true;
 	} else {
 		return false;
